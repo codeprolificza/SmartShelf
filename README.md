@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**SmartShelf** is a development collaboration project focused on the design, development, programming, and implementation of a real-world **Library Management and Book Recommendation System**. The project aims to provide a modern, efficient, and user-friendly platform that addresses the needs of both university students and library staff.
+**SmartShelf** is a development collaboration group focused on the design, development, programming, and implementation of a real-world **Library Management and Book Recommendation System**. The project aims to provide a modern, efficient, and user-friendly platform that addresses the needs of both university students and library staff.
 
 The application, **UniLibrary**, is designed to streamline essential library operations while improving the way students discover, access, and interact with academic resources. The system brings together library management functionality and intelligent recommendation features within a single platform.
 

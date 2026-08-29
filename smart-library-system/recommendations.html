@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendations - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .page-header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 span { color: #00a8ff; }
+
+        .page-header p { color: #ccc; }
+
+        .based-on {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(0,168,255,0.15);
+            color: #00a8ff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 45px 7%;
+        }
+
+        .books {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .book {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .book:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .match-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #00a8ff;
+            color: white;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .book-cover {
+            height: 200px;
+            background: #071a2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 60px;
+        }
+
+        .book-info {
+            padding: 18px;
+        }
+
+        .book-info h3 {
+            margin-bottom: 6px;
+            color: #071a2b;
+            font-size: 16px;
+        }
+
+        .author {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .reason {
+            color: #00a8ff;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .borrow-btn {
+            width: 100%;
+            padding: 10px;
+            background: #00a8ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .borrow-btn:hover { background: #0077b6; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+        }
+
+        @media(max-width: 1000px) {
+            .books { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media(max-width: 650px) {
+            .nav-links { display: none; }
+            .books { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-student.html">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Your <span>Recommendations</span></h1>
+        <p>Books picked for you based on your interests.</p>
+
+        <div class="based-on">
+            <span class="tag">💻 Computer Science</span>
+            <span class="tag">📐 Mathematics</span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="books" id="bookContainer">
+
+            <div class="book">
+                <div class="match-badge">98% Match</div>
+                <div class="book-cover">💻</div>
+                <div class="book-info">
+                    <h3>Introduction to Programming</h3>
+                    <p class="author">By John Smith</p>
+                    <p class="reason">Because you like Computer Science</p>
+                    <button class="borrow-btn" onclick="borrowBook('Introduction to Programming')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="match-badge">95% Match</div>
+                <div class="book-cover">📊</div>
+                <div class="book-info">
+                    <h3>Data Science</h3>
+                    <p class="author">By Jake VanderPlas</p>
+                    <p class="reason">Because you like Computer Science</p>
+                    <button class="borrow-btn" onclick="borrowBook('Data Science')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="match-badge">90% Match</div>
+                <div class="book-cover">📐</div>
+                <div class="book-info">
+                    <h3>Advanced Mathematics</h3>
+                    <p class="author">By James Stewart</p>
+                    <p class="reason">Because you like Mathematics</p>
+                    <button class="borrow-btn" onclick="borrowBook('Advanced Mathematics')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="match-badge">80% Match</div>
+                <div class="book-cover">🤖</div>
+                <div class="book-info">
+                    <h3>Artificial Intelligence Basics</h3>
+                    <p class="author">By Stuart Russell</p>
+                    <p class="reason">Because you like Computer Science</p>
+                    <button class="borrow-btn" onclick="borrowBook('Artificial Intelligence Basics')">Borrow Book</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function borrowBook(bookName) {
+            alert("You have selected: " + bookName + "\n\nPlease login to borrow this book.");
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* NAV - matches homepage */
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00a8ff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover {
+            color: #00a8ff;
+        }
+
+        /* LOGIN CARD */
+
+        .login-wrapper {
+            min-height: calc(100vh - 75px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .login-card {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 12px;
+            padding: 45px 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .login-card h2 {
+            color: #071a2b;
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .login-card p.subtitle {
+            color: #777;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .role-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .role-option {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #555;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .role-option.active {
+            border-color: #00a8ff;
+            background: #eaf7ff;
+            color: #071a2b;
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 6px;
+            margin-top: 18px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #00a8ff;
+        }
+
+        .login-btn-submit {
+            width: 100%;
+            margin-top: 28px;
+            padding: 14px;
+            background: #00a8ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn-submit:hover {
+            background: #0077b6;
+        }
+
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #00a8ff;
+            font-size: 14px;
+        }
+
+        @media(max-width: 500px) {
+            .login-card {
+                padding: 30px 22px;
+            }
+            .login-card h2 {
+                font-size: 24px;
+            }
+            .role-select {
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+        </ul>
+    </nav>
+
+    <div class="login-wrapper">
+
+        <div class="login-card">
+
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Log in to continue to UniLibrary</p>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+
+                <label>I am a:</label>
+                <div class="role-select" id="roleSelect">
+                    <div class="role-option active" data-role="student" onclick="selectRole(this)">Student</div>
+                    <div class="role-option" data-role="staff" onclick="selectRole(this)">Staff</div>
+                    <div class="role-option" data-role="admin" onclick="selectRole(this)">Admin</div>
+                </div>
+
+                <label for="username">Email</label>
+                <input type="email" id="username" name="username" placeholder="user@ufh.ac.za" required>
+                <p id="emailError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;">Please use your @ufh.ac.za email address.</p>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit" class="login-btn-submit">Log In</button>
+
+            </form>
+
+            <a href="forgot-password.html" class="back-home">Forgot your password?</a>
+            <a href="signup.html" class="back-home">Don't have an account? Sign up</a>
+            <a href="index.html" class="back-home">← Back to homepage</a>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        let currentRole = "student";
+
+        function selectRole(el) {
+            document.querySelectorAll('.role-option').forEach(function(opt) {
+                opt.classList.remove('active');
+            });
+            el.classList.add('active');
+            currentRole = el.getAttribute('data-role');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+
+            let email = document.getElementById('username').value.trim().toLowerCase();
+            let errorMsg = document.getElementById('emailError');
+
+            if (!email.endsWith('@ufh.ac.za')) {
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            errorMsg.style.display = "none";
+
+            // Send each role to its own dashboard page
+            if (currentRole === "student") {
+                window.location.href = "dashboard-student.html";
+            } else if (currentRole === "staff") {
+                window.location.href = "dashboard-staff.html";
+            } else if (currentRole === "admin") {
+                window.location.href = "dashboard-admin.html";
+            }
+        }
+
+    </script>
+
+</body>
+</html>

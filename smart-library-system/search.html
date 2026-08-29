@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Books - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .page-header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 span { color: #00a8ff; }
+
+        .page-header p { color: #ccc; margin-bottom: 25px; }
+
+        .search-box {
+            display: flex;
+            max-width: 650px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 0 25px;
+            border: none;
+            background: #00a8ff;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .content {
+            padding: 40px 7%;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 18px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            color: #555;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            border-color: #00a8ff;
+            background: #00a8ff;
+            color: white;
+        }
+
+        .books {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .book {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .book:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .book-cover {
+            height: 200px;
+            background: #071a2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 60px;
+        }
+
+        .book-info {
+            padding: 18px;
+        }
+
+        .book-info h3 {
+            margin-bottom: 6px;
+            color: #071a2b;
+            font-size: 16px;
+        }
+
+        .author {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .available {
+            color: green;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .borrow-btn {
+            width: 100%;
+            padding: 10px;
+            background: #00a8ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .borrow-btn:hover { background: #0077b6; }
+
+        .no-results {
+            text-align: center;
+            color: #777;
+            padding: 40px 0;
+            display: none;
+        }
+
+        @media(max-width: 1000px) {
+            .books { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media(max-width: 650px) {
+            .nav-links { display: none; }
+            .books { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-student.html">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Search <span>Books</span></h1>
+        <p>Find books by title, author or subject.</p>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search for a book, author or subject..." onkeyup="filterBooks()">
+            <button onclick="filterBooks()">Search</button>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="filters" id="filterBar">
+            <button class="filter-btn active" data-category="all" onclick="setCategory(this)">All</button>
+            <button class="filter-btn" data-category="Computer Science" onclick="setCategory(this)">Computer Science</button>
+            <button class="filter-btn" data-category="Mathematics" onclick="setCategory(this)">Mathematics</button>
+            <button class="filter-btn" data-category="Science" onclick="setCategory(this)">Science</button>
+            <button class="filter-btn" data-category="Novels" onclick="setCategory(this)">Novels</button>
+            <button class="filter-btn" data-category="History" onclick="setCategory(this)">History</button>
+        </div>
+
+        <div class="books" id="bookContainer">
+
+            <div class="book" data-category="Computer Science">
+                <div class="book-cover">💻</div>
+                <div class="book-info">
+                    <h3>Introduction to Programming</h3>
+                    <p class="author">By John Smith</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('Introduction to Programming')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book" data-category="Science">
+                <div class="book-cover">🧪</div>
+                <div class="book-info">
+                    <h3>General Chemistry</h3>
+                    <p class="author">By Raymond Chang</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('General Chemistry')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book" data-category="Computer Science">
+                <div class="book-cover">📊</div>
+                <div class="book-info">
+                    <h3>Data Science</h3>
+                    <p class="author">By Jake VanderPlas</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('Data Science')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book" data-category="Mathematics">
+                <div class="book-cover">📐</div>
+                <div class="book-info">
+                    <h3>Advanced Mathematics</h3>
+                    <p class="author">By James Stewart</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('Advanced Mathematics')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book" data-category="Novels">
+                <div class="book-cover">📚</div>
+                <div class="book-info">
+                    <h3>Things Fall Apart</h3>
+                    <p class="author">By Chinua Achebe</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('Things Fall Apart')">Borrow Book</button>
+                </div>
+            </div>
+
+            <div class="book" data-category="History">
+                <div class="book-cover">🏛️</div>
+                <div class="book-info">
+                    <h3>Sapiens</h3>
+                    <p class="author">By Yuval Noah Harari</p>
+                    <p class="available">● Available</p>
+                    <button class="borrow-btn" onclick="borrowBook('Sapiens')">Borrow Book</button>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="no-results" id="noResults">No books match your search.</p>
+
+    </div>
+
+    <script>
+
+        let currentCategory = "all";
+
+        function setCategory(btn) {
+            document.querySelectorAll('.filter-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            currentCategory = btn.getAttribute('data-category');
+            filterBooks();
+        }
+
+        function filterBooks() {
+
+            let search = document.getElementById('searchInput').value.toLowerCase();
+            let books = document.querySelectorAll('.book');
+            let visibleCount = 0;
+
+            books.forEach(function(book) {
+
+                let title = book.querySelector('h3').textContent.toLowerCase();
+                let author = book.querySelector('.author').textContent.toLowerCase();
+                let category = book.getAttribute('data-category');
+
+                let matchesSearch = title.includes(search) || author.includes(search);
+                let matchesCategory = (currentCategory === "all" || category === currentCategory);
+
+                if (matchesSearch && matchesCategory) {
+                    book.style.display = "block";
+                    visibleCount++;
+                } else {
+                    book.style.display = "none";
+                }
+
+            });
+
+            document.getElementById('noResults').style.display = (visibleCount === 0) ? "block" : "none";
+        }
+
+        function borrowBook(bookName) {
+            alert("You have selected: " + bookName + "\n\nPlease login to borrow this book.");
+        }
+
+    </script>
+
+</body>
+</html>

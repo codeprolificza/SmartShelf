@@ -81,7 +81,6 @@ The following section contains screenshots of the UniLibrary application as deve
 
 ![Recommendations](smart-library-system/images/Recommendations.png)
 
-
 ### Interests
 
 ![User Interests](smart-library-system/images/Interests.png)
@@ -112,6 +111,7 @@ SmartShelf/
 │   ├── css/                    # Application stylesheets
 │   ├── database/               # Application database resources
 │   ├── docs/                   # Application-specific documentation
+│   ├── images/                 # Application screenshots
 │   ├── *.html                  # User-facing application pages
 │   └── src/                    # Application source code
 │       ├── books/

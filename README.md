@@ -57,27 +57,40 @@ Ultimately, SmartShelf seeks to combine **library management, intelligent search
 
 ## Application Preview
 
-The following section will contain screenshots of the UniLibrary application as development progresses.
+The following section contains screenshots of the UniLibrary application as development progresses.
+
+### Login & Signup
+
+![Login](smart-library-system/docs/images/Login.png)
+
+![Signup](smart-library-system/docs/images/Signup.png)
 
 ### Home
 
-*Application screenshot coming soon.*
+![Homepage](smart-library-system/docs/images/Home.png)
 
 ### Student Dashboard
 
-*Application screenshot coming soon.*
+![Student Dashboard](smart-library-system/docs/images/Dashboard.png)
 
 ### Book Search
 
-*Application screenshot coming soon.*
+![Book Search](smart-library-system/docs/images/Search.png)
 
 ### Recommendations
 
-*Application screenshot coming soon.*
+![Recommendations](smart-library-system/docs/images/Recommendations.png)
+
+
+### Interests
+
+![User Interests](smart-library-system/docs/images/Interests.png)
 
 ### Library Management
 
-*Application screenshot coming soon.*
+![Staff Dashboard](smart-library-system/docs/images/Dashboard2.png)
+
+![Admin Dashboard](smart-library-system/docs/images/Dashboard3.png)
 
 ## Repository Structure
 

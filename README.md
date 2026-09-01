@@ -61,36 +61,36 @@ The following section contains screenshots of the UniLibrary application as deve
 
 ### Login & Signup
 
-![Login](smart-library-system/docs/images/Login.png)
+![Login](smart-library-system/images/Login.png)
 
-![Signup](smart-library-system/docs/images/Signup.png)
+![Signup](smart-library-system/images/Signup.png)
 
 ### Home
 
-![Homepage](smart-library-system/docs/images/Home.png)
+![Homepage](smart-library-system/images/Home.png)
 
 ### Student Dashboard
 
-![Student Dashboard](smart-library-system/docs/images/Dashboard.png)
+![Student Dashboard](smart-library-system/images/Dashboard.png)
 
 ### Book Search
 
-![Book Search](smart-library-system/docs/images/Search.png)
+![Book Search](smart-library-system/images/Search.png)
 
 ### Recommendations
 
-![Recommendations](smart-library-system/docs/images/Recommendations.png)
+![Recommendations](smart-library-system/images/Recommendations.png)
 
 
 ### Interests
 
-![User Interests](smart-library-system/docs/images/Interests.png)
+![User Interests](smart-library-system/images/Interests.png)
 
 ### Library Management
 
-![Staff Dashboard](smart-library-system/docs/images/Dashboard2.png)
+![Admin Panel](smart-library-system/images/Dashboard2.png)
 
-![Admin Dashboard](smart-library-system/docs/images/Dashboard3.png)
+![Staff Panel](smart-library-system/images/Dashboard3.png)
 
 ## Repository Structure
 

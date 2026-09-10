@@ -167,22 +167,22 @@ Contributors should follow the development practices and contribution guidelines
 
 ## Contributors
 
-| Contributor            | GitHub      |
-| :--------------------- | :---------- |
-| **April Liyabona**     | `@username` |
-| **Baloyi Kelyn**       | `@username` |
-| **Khutshwa Baxole**    | `@username` |
-| **Lonwabo Magawu**     | `@username` |
-| **Lulamile Shongwe**   | `@username` |
-| **Luthando Rungqu**    | `@username` |
-| **MABENA S**           | `@username` |
-| **Mapungu Azole**      | `@username` |
-| **Mgandela Sinoyolo**  | `@username` |
-| **Mpelane Siphesihle** | `@username` |
-| **Ntanjana Mawande**   | `@username` |
-| **Ovayo Kani**         | `@username` |
-| **Siswana IL**         | `@username` |
-| **Wanga Talaba**       | `@username` |
+| Contributor              | GitHub                                                                       |
+| :----------------------- | :--------------------------------------------------------------------------- |
+| **Liyabona April**       | [@Liya030727](https://github.com/Liya030727)                                 |
+| **Kelyn Baloyi**         | [@kelynnxavo-hue](https://github.com/kelynnxavo-hue)                         |
+| **Baxole Khutshwa**      | [@BaxoleKhutshwa](https://github.com/BaxoleKhutshwa)                         |
+| **Sinothando Mabena**    | [@sinothandomabena0-arch](https://github.com/sinothandomabena0-arch)         |
+| **Lonwabo Magawu**       | [@codeprolificza](https://github.com/codeprolificza)                         |
+| **Azole Mapungu**        | [@azolenqay-sketch](https://github.com/azolenqay-sketch)                     |
+| **Sinoyolo Mgandela**    | [@sinoyolomgandela108-crypto](https://github.com/sinoyolomgandela108-crypto) |
+| **Siphesihle Mpelane**   | [@Siphesihlempelane](https://github.com/Siphesihlempelane)                   |
+| **Mawande Ntanjana**     | [@mawandentanjana1123](https://github.com/mawandentanjana1123)               |
+| **Ovayo Kani**           | [@OvayoKani](https://github.com/OvayoKani)                                   |
+| **Luthando Rungqu**      | [@DevNox-pixel](https://github.com/DevNox-pixel)                             |
+| **Lulamile Shongwe**     | [@Lulamileshongwe33](https://github.com/Lulamileshongwe33)                   |
+| **Inam Lonwabo Siswana** | [@inamsiswana](https://github.com/inamsiswana)                               |
+| **Wanga Talaba**         | [@wangatalaba](https://github.com/wangatalaba)                               |
 
 > For the complete role-based organization and responsibilities of the SmartShelf team, see [`docs/team-structure.md`](docs/team-structure.md).
 

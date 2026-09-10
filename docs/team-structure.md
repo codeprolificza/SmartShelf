@@ -12,8 +12,8 @@ The structure is designed to provide clear areas of responsibility while allowin
 
 | Member               | Role                      |
 | :------------------- | :------------------------ |
-| **April Liyabona**   | Group Leader              |
-| **Khutshwa Baxole**  | Assignment Group Leader   |
+| **Liyabona April**   | Group Leader              |
+| **Baxole Khutshwa**  | Assignment Group Leader   |
 | **Ovayo Kani**       | Project Group Leader      |
 | **Lulamile Shongwe** | Presentation Group Leader |
 
@@ -49,14 +49,14 @@ The structure is designed to provide clear areas of responsibility while allowin
 
 | Member                            | Role                                     |
 | :-------------------------------- | :--------------------------------------- |
-| **Mpelane Siphesihle**            | Research Coordinator                     |
-| **April Liyabona**                | Documentation Coordinator                |
-| **Mapungu Azole**                 | System Design Coordinator                |
+| **Siphesihle Mpelane**            | Research Coordinator                     |
+| **Liyabona April**                | Documentation Coordinator                |
+| **Azole Mapungu**                 | System Design Coordinator                |
 | **Luthando Rungqu**               | Developer Coordinator                    |
-| **Ntanjana Mawande**              | Testing & QA Coordinator                 |
+| **Mawande Ntanjana**              | Testing & QA Coordinator                 |
 | **Lonwabo Magawu**                | Repository & Version Control Coordinator |
-| **April Liyabona & Wanga Talaba** | Communication & Scheduling Coordinators  |
-| **Baloyi Kelyn**                  | Support & Logistics Coordinator          |
+| **Liyabona April & Wanga Talaba** | Communication & Scheduling Coordinators  |
+| **Kelyn Baloyi**                  | Support & Logistics Coordinator          |
 
 ### Responsibilities
 
@@ -112,11 +112,11 @@ The structure is designed to provide clear areas of responsibility while allowin
 
 ## 3. Presentation & Reporting
 
-| Member                | Role                     |
-| :-------------------- | :----------------------- |
-| **MABENA S**          | Presentation Coordinator |
-| **Siswana IL**        | Slide Design Coordinator |
-| **Mgandela Sinoyolo** | Report Editor            |
+| Member                    | Role                     |
+| :------------------------ | :----------------------- |
+| **Sinothando Mabena**     | Presentation Coordinator |
+| **Inam Lonwabo Siswana**  | Slide Design Coordinator |
+| **Sinoyolo Mgandela**     | Report Editor            |
 
 ### Responsibilities
 
@@ -154,15 +154,15 @@ The team structure may evolve as the UniLibrary project progresses and additiona
 
 | Area                         | Coordinator(s)                                                |
 | :--------------------------- | :------------------------------------------------------------ |
-| Group Leadership             | April Liyabona, Khutshwa Baxole, Ovayo Kani, Lulamile Shongwe |
-| Research                     | Mpelane Siphesihle                                            |
-| Documentation                | April Liyabona                                                |
-| System Design                | Mapungu Azole                                                 |
+| Group Leadership             | Liyabona April, Baxole Khutshwa, Ovayo Kani, Lulamile Shongwe |
+| Research                     | Siphesihle Mpelane                                            |
+| Documentation                | Liyabona April                                                |
+| System Design                | Azole Mapungu                                                 |
 | Development                  | Luthando Rungqu                                               |
-| Testing & QA                 | Ntanjana Mawande                                              |
+| Testing & QA                 | Mawande Ntanjana                                              |
 | Repository & Version Control | Lonwabo Magawu                                                |
-| Communication & Scheduling   | April Liyabona, Wanga Talaba                                  |
-| Support & Logistics          | Baloyi Kelyn                                                  |
-| Presentation                 | MABENA S                                                      |
-| Slide Design                 | Siswana IL                                                    |
-| Report Editing               | Mgandela Sinoyolo                                             |
+| Communication & Scheduling   | Liyabona April, Wanga Talaba                                  |
+| Support & Logistics          | Kelyn Baloyi                                                  |
+| Presentation                 | Sinothando Mabena                                             |
+| Slide Design                 | Inam Lonwabo Siswana                                          |
+| Report Editing               | Sinoyolo Mgandela                                             |

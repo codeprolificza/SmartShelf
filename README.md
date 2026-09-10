@@ -174,7 +174,7 @@ Contributors should follow the development practices and contribution guidelines
 | **Baxole Khutshwa**      | [@BaxoleKhutshwa](https://github.com/BaxoleKhutshwa)                         |
 | **Sinothando Mabena**    | [@sinothandomabena0-arch](https://github.com/sinothandomabena0-arch)         |
 | **Lonwabo Magawu**       | [@codeprolificza](https://github.com/codeprolificza)                         |
-| **Azole Mapungu**        | [@azolenqay-sketch](https://github.com/azolenqay-sketch)                     |
+| **Azole Mapungu**        | [@azolenqay-sketch](https://github.com/azolemnqay-sketch)                    |
 | **Sinoyolo Mgandela**    | [@sinoyolomgandela108-crypto](https://github.com/sinoyolomgandela108-crypto) |
 | **Siphesihle Mpelane**   | [@Siphesihlempelane](https://github.com/Siphesihlempelane)                   |
 | **Mawande Ntanjana**     | [@mawandentanjana1123](https://github.com/mawandentanjana1123)               |

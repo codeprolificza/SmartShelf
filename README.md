@@ -4,7 +4,7 @@
 
 ## About the Project
 
-SmartShelf is a development collaboration group of focused on the design, development, programming, and implementation of a real-world **Library Management and Book Recommendation System**.
+SmartShelf is a development collaboration group focused on the design, development, programming, and implementation of a real-world **Library Management and Book Recommendation System**.
 
 The project aims to provide a modern, efficient, and user-friendly platform that addresses the needs of both university students and library staff.
 
@@ -98,39 +98,39 @@ The repository contains the application, documentation, testing resources, devel
 ```text
 SmartShelf/
 ├── .github/
-│   └── workflows/              # GitHub Actions workflows
-│
-├── docs/                       # Project-level documentation
+│   └── workflows/ # GitHub Actions workflows
+│   ├── docs/ # Project-level documentation
 │   ├── api.md
 │   ├── databaseDesign.md
 │   ├── deployment.md
 │   ├── requirements.md
-│   └── system-design.md
+│   ├── system-design.md
+│   └── team-structure.md # SmartShelf team organization and roles
 │
-├── smart-library-system/       # Main UniLibrary application
-│   ├── css/                    # Application stylesheets
-│   ├── database/               # Application database resources
-│   ├── docs/                   # Application-specific documentation
-│   ├── images/                 # Application screenshots
-│   ├── *.html                  # User-facing application pages
-│   └── src/                    # Application source code
-│       ├── books/
-│       ├── borrowing/
-│       ├── notifications/
-│       ├── recommendations/
-│       ├── reservations/
-│       ├── smartself/
-│       ├── static/
-│       ├── templates/
-│       └── users/
+├── smart-library-system/ # Main UniLibrary application
+│   ├── css/ # Application stylesheets
+│   ├── database/ # Application database resources
+│   ├── docs/ # Application-specific documentation
+│   ├── images/ # Application screenshots
+│   ├── *.html # User-facing application pages
+│   └── src/ # Application source code
+│     ├── books/
+│     ├── borrowing/
+│     ├── notifications/
+│     ├── recommendations/
+│     ├── reservations/
+│     ├── smartself/
+│     ├── static/
+│     ├── templates/
+│     └── users/
 │
-├── tests/                      # Project tests
-├── .env.example                # Example environment configuration
-├── .gitignore                  # Git ignore rules
-├── CONTRIBUTING.md             # Contribution guidelines
-├── LICENSE                     # Project license
-├── README.md                   # Project overview
-└── requirements.txt            # Project dependencies
+├── tests/ # Project tests
+├── .env.example # Example environment configuration
+├── .gitignore # Git ignore rules
+├── CONTRIBUTING.md # Contribution guidelines
+├── LICENSE # Project license
+├── README.md # Project overview
+└── requirements.txt # Project dependencies
 ```
 
 > The repository structure is actively maintained and may evolve as the UniLibrary system develops.
@@ -165,13 +165,26 @@ Contributors should follow the development practices and contribution guidelines
 
 ## Contributors
 
-| Contributor   | Role          |
-| ------------- | ------------- |
-| *To be added* | *To be added* |
-| *To be added* | *To be added* |
-| *To be added* | *To be added* |
+## Contributors
 
-The contributor list and project roles will be maintained as the development team progresses.
+| Contributor            | GitHub      |
+| :--------------------- | :---------- |
+| **April Liyabona**     | `@username` |
+| **Baloyi Kelyn**       | `@username` |
+| **Khutshwa Baxole**    | `@username` |
+| **Lonwabo Magawu**     | `@username` |
+| **Lulamile Shongwe**   | `@username` |
+| **Luthando Rungqu**    | `@username` |
+| **MABENA S**           | `@username` |
+| **Mapungu Azole**      | `@username` |
+| **Mgandela Sinoyolo**  | `@username` |
+| **Mpelane Siphesihle** | `@username` |
+| **Ntanjana Mawande**   | `@username` |
+| **Ovayo Kani**         | `@username` |
+| **Siswana IL**         | `@username` |
+| **Wanga Talaba**       | `@username` |
+
+> For the complete role-based organization and responsibilities of the SmartShelf team, see [`docs/team-structure.md`](docs/team-structure.md).
 
 ## Contributing
 

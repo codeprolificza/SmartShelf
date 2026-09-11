@@ -192,6 +192,6 @@ UniLibrary is developed collaboratively by the SmartShelf project team.
 
 Before contributing, please review [`CONTRIBUTING.md`](CONTRIBUTING.md) for information regarding the project's development workflow, contribution practices, and repository guidelines.
 
-## 📄 License
+## License
 
 This project is licensed under the terms specified in the [`LICENSE`](LICENSE) file.

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interests - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .page-header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 span { color: #00a8ff; }
+
+        .page-header p { color: #ccc; }
+
+        .content {
+            padding: 50px 7%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .content > p.instruction {
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+
+        .interest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .interest-card {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .interest-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .interest-card.selected {
+            border-color: #00a8ff;
+            background: #eaf7ff;
+        }
+
+        .interest-card .icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .interest-card h3 {
+            color: #071a2b;
+            font-size: 16px;
+        }
+
+        .interest-card .check {
+            display: none;
+            color: #00a8ff;
+            font-size: 13px;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
+        .interest-card.selected .check {
+            display: block;
+        }
+
+        .email-pref {
+            background: white;
+            border-radius: 10px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+
+        .email-pref label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .save-btn {
+            background: #00a8ff;
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .save-btn:hover {
+            background: #0077b6;
+        }
+
+        @media(max-width: 700px) {
+            .interest-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-student.html">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>My <span>Interests</span></h1>
+        <p>Pick your favorite categories and we'll email you when matching new books arrive.</p>
+    </div>
+
+    <div class="content">
+
+        <p class="instruction">Click on all the categories you're interested in. You can change these anytime.</p>
+
+        <div class="interest-grid" id="interestGrid">
+
+            <div class="interest-card selected" onclick="toggleInterest(this)">
+                <div class="icon">💻</div>
+                <h3>Computer Science</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+            <div class="interest-card" onclick="toggleInterest(this)">
+                <div class="icon">📐</div>
+                <h3>Mathematics</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+            <div class="interest-card" onclick="toggleInterest(this)">
+                <div class="icon">🧪</div>
+                <h3>Science</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+            <div class="interest-card" onclick="toggleInterest(this)">
+                <div class="icon">📚</div>
+                <h3>Novels</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+            <div class="interest-card" onclick="toggleInterest(this)">
+                <div class="icon">🏛️</div>
+                <h3>History</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+            <div class="interest-card" onclick="toggleInterest(this)">
+                <div class="icon">💼</div>
+                <h3>Business</h3>
+                <div class="check">✓ Selected</div>
+            </div>
+
+        </div>
+
+        <div class="email-pref">
+            <label>
+                <input type="checkbox" id="emailToggle" checked>
+                Email me when new books matching my interests are added
+            </label>
+        </div>
+
+        <button class="save-btn" onclick="saveInterests()">Save My Interests</button>
+
+    </div>
+
+    <script>
+
+        function toggleInterest(card) {
+            card.classList.toggle('selected');
+        }
+
+        function saveInterests() {
+
+            let selected = [];
+
+            document.querySelectorAll('.interest-card.selected h3').forEach(function(h3) {
+                selected.push(h3.textContent);
+            });
+
+            let emailOn = document.getElementById('emailToggle').checked;
+
+            if (selected.length === 0) {
+                alert("Please select at least one interest.");
+                return;
+            }
+
+            alert(
+                "Interests saved: " + selected.join(", ") +
+                "\n\nEmail notifications: " + (emailOn ? "ON" : "OFF")
+            );
+        }
+
+    </script>
+
+</body>
+</html>

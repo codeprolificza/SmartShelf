@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        /* NAV - matches homepage/login */
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        /* WELCOME BANNER */
+
+        .welcome-banner {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .welcome-banner h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-banner h1 span {
+            color: #00a8ff;
+        }
+
+        .welcome-banner p {
+            color: #ccc;
+        }
+
+        /* DASHBOARD GRID */
+
+        .dashboard {
+            padding: 50px 7%;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+
+        .card .icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: #071a2b;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .card a.btn {
+            display: inline-block;
+            background: #00a8ff;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .card a.btn:hover {
+            background: #0077b6;
+        }
+
+        /* MY BORROWED BOOKS */
+
+        .section-title {
+            margin: 55px 0 20px;
+        }
+
+        .section-title h2 {
+            color: #071a2b;
+            font-size: 24px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 20px;
+        }
+
+        th {
+            background: #071a2b;
+            color: white;
+            font-size: 14px;
+        }
+
+        td {
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .status-due {
+            color: #d63031;
+            font-weight: bold;
+        }
+
+        .status-ok {
+            color: green;
+            font-weight: bold;
+        }
+
+        @media(max-width: 800px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="search.html">Search Books</a></li>
+            <li><a href="dashboard-student.html">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="welcome-banner">
+        <h1>Welcome back, <span>Luthando</span></h1>
+        <p>Here's what's happening in your library account.</p>
+    </div>
+
+    <div class="dashboard">
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="icon">🔍</div>
+                <h3>Search Books</h3>
+                <p>Browse the full catalog by title, author or subject.</p>
+                <a href="search.html" class="btn">Go to Search</a>
+            </div>
+
+            <div class="card">
+                <div class="icon">⭐</div>
+                <h3>My Interests</h3>
+                <p>Choose your favorite categories to get email updates on new books.</p>
+                <a href="interests.html" class="btn">Set Interests</a>
+            </div>
+
+            <div class="card">
+                <div class="icon">📖</div>
+                <h3>Recommendations</h3>
+                <p>See books picked for you based on your interests.</p>
+                <a href="recommendations.html" class="btn">View Recommendations</a>
+            </div>
+
+        </div>
+
+        <div class="section-title">
+            <h2>My Borrowed Books</h2>
+        </div>
+
+        <div class="table-scroll">
+        <table id="borrowedTable" style="min-width:600px;">
+            <tr>
+                <th>Book Title</th>
+                <th>Borrowed On</th>
+                <th>Due Date</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Introduction to Programming</td>
+                <td>10 Aug 2026</td>
+                <td>24 Aug 2026</td>
+                <td class="status-due">Due Soon</td>
+            </tr>
+            <tr>
+                <td>Data Science</td>
+                <td>02 Aug 2026</td>
+                <td>16 Aug 2026</td>
+                <td class="status-ok">Returned</td>
+            </tr>
+        </table>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>University Library</title>
+
+    <style>
+
+        /* =========================
+           GENERAL
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* =========================
+           NAVIGATION BAR
+        ========================= */
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00a8ff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #00a8ff;
+        }
+
+        .login-btn {
+            background: #00a8ff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+        }
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            min-height: 500px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+
+            padding: 60px 20px;
+
+            background:
+                linear-gradient(
+                    rgba(7, 26, 43, 0.88),
+                    rgba(7, 26, 43, 0.88)
+                ),
+                url("https://images.unsplash.com/photo-1507842217343-583bb7270b66")
+                center/cover;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 55px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 span {
+            color: #00a8ff;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #ddd;
+            margin-bottom: 35px;
+        }
+
+        /* =========================
+           SEARCH
+        ========================= */
+
+        .search-box {
+            display: flex;
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 17px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 0 30px;
+            border: none;
+            background: #00a8ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 50px 7%;
+            background: white;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 25px;
+        }
+
+        .stat h2 {
+            color: #00a8ff;
+            font-size: 35px;
+        }
+
+        .stat p {
+            color: #666;
+        }
+
+        /* =========================
+           SECTION
+        ========================= */
+
+        section {
+            padding: 80px 7%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .section-title h2 {
+            font-size: 35px;
+            color: #071a2b;
+        }
+
+        .section-title p {
+            color: #777;
+            margin-top: 10px;
+        }
+
+        /* =========================
+           CATEGORIES
+        ========================= */
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .category {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .category:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .category .icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .category h3 {
+            color: #071a2b;
+        }
+
+        /* =========================
+           BOOKS
+        ========================= */
+
+        .books {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .book {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .book:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .book-cover {
+            height: 230px;
+            background: #071a2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 70px;
+        }
+
+        .book-info {
+            padding: 20px;
+        }
+
+        .book-info h3 {
+            margin-bottom: 8px;
+            color: #071a2b;
+        }
+
+        .author {
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .available {
+            color: green;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .borrow-btn {
+            width: 100%;
+            padding: 11px;
+            background: #00a8ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        .borrow-btn:hover {
+            background: #0077b6;
+        }
+
+        /* =========================
+           ABOUT
+        ========================= */
+
+        .about {
+            background: #071a2b;
+            color: white;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 35px;
+            margin-bottom: 20px;
+        }
+
+        .about p {
+            max-width: 750px;
+            margin: auto;
+            color: #ccc;
+            line-height: 1.8;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            background: #04111d;
+            color: #aaa;
+            text-align: center;
+            padding: 30px;
+        }
+
+        footer span {
+            color: #00a8ff;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media(max-width: 1000px) {
+
+            .books {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .statistics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 650px) {
+
+            nav {
+                padding: 0 5%;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 38px;
+            }
+
+            .hero p {
+                font-size: 17px;
+            }
+
+            .books {
+                grid-template-columns: 1fr;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+            }
+
+            .statistics {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 60px 5%;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+
+    <!-- =========================
+         NAVIGATION
+    ========================= -->
+
+    <nav>
+
+        <div class="logo">
+            Uni<span>Library</span>
+        </div>
+
+        <ul class="nav-links">
+
+            <li>
+                <a href="#home">Home</a>
+            </li>
+
+            <li>
+                <a href="#books">Books</a>
+            </li>
+
+            <li>
+                <a href="#categories">Categories</a>
+            </li>
+
+            <li>
+                <a href="#about">About</a>
+            </li>
+
+            <li>
+                <a href="#contact">Contact</a>
+            </li>
+
+        </ul>
+
+        <a href="login.html" class="login-btn">
+            Login
+        </a>
+
+    </nav>
+
+
+    <!-- =========================
+         HERO
+    ========================= -->
+
+    <section class="hero" id="home">
+
+        <div class="hero-content">
+
+            <h1>
+                Welcome to the
+                <span>University Library</span>
+            </h1>
+
+            <p>
+                Discover thousands of books, research materials,
+                journals and academic resources.
+            </p>
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search for a book, author or subject..."
+                >
+
+                <button onclick="searchBooks()">
+                    Search
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         STATISTICS
+    ========================= -->
+
+    <div class="statistics">
+
+        <div class="stat">
+            <h2>25K+</h2>
+            <p>Books</p>
+        </div>
+
+        <div class="stat">
+            <h2>8K+</h2>
+            <p>Students</p>
+        </div>
+
+        <div class="stat">
+            <h2>2K+</h2>
+            <p>Research Papers</p>
+        </div>
+
+        <div class="stat">
+            <h2>500+</h2>
+            <p>Journals</p>
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         CATEGORIES
+    ========================= -->
+
+    <section id="categories">
+
+        <div class="section-title">
+
+            <h2>Book Categories</h2>
+
+            <p>
+                Explore our collection by category.
+            </p>
+
+        </div>
+
+
+        <div class="categories">
+
+            <div class="category">
+                <div class="icon">💻</div>
+                <h3>Computer Science</h3>
+            </div>
+
+            <div class="category">
+                <div class="icon">🧪</div>
+                <h3>Science</h3>
+            </div>
+
+            <div class="category">
+                <div class="icon">📐</div>
+                <h3>Mathematics</h3>
+            </div>
+
+            <div class="category">
+                <div class="icon">📚</div>
+                <h3>Literature</h3>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         BOOKS
+    ========================= -->
+
+    <section id="books">
+
+        <div class="section-title">
+
+            <h2>Featured Books</h2>
+
+            <p>
+                Popular books available in our library.
+            </p>
+
+        </div>
+
+
+        <div class="books" id="bookContainer">
+
+
+            <!-- BOOK 1 -->
+
+            <div class="book">
+
+                <div class="book-cover">
+                    💻
+                </div>
+
+                <div class="book-info">
+
+                    <h3>
+                        Introduction to Programming
+                    </h3>
+
+                    <p class="author">
+                        By John Smith
+                    </p>
+
+                    <p class="available">
+                        ● Available
+                    </p>
+
+                    <button
+                        class="borrow-btn"
+                        onclick="borrowBook('Introduction to Programming')"
+                    >
+                        Borrow Book
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOOK 2 -->
+
+            <div class="book">
+
+                <div class="book-cover">
+                    🧪
+                </div>
+
+                <div class="book-info">
+
+                    <h3>
+                        General Chemistry
+                    </h3>
+
+                    <p class="author">
+                        By Raymond Chang
+                    </p>
+
+                    <p class="available">
+                        ● Available
+                    </p>
+
+                    <button
+                        class="borrow-btn"
+                        onclick="borrowBook('General Chemistry')"
+                    >
+                        Borrow Book
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOOK 3 -->
+
+            <div class="book">
+
+                <div class="book-cover">
+                    📊
+                </div>
+
+                <div class="book-info">
+
+                    <h3>
+                        Data Science
+                    </h3>
+
+                    <p class="author">
+                        By Jake VanderPlas
+                    </p>
+
+                    <p class="available">
+                        ● Available
+                    </p>
+
+                    <button
+                        class="borrow-btn"
+                        onclick="borrowBook('Data Science')"
+                    >
+                        Borrow Book
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOOK 4 -->
+
+            <div class="book">
+
+                <div class="book-cover">
+                    📐
+                </div>
+
+                <div class="book-info">
+
+                    <h3>
+                        Advanced Mathematics
+                    </h3>
+
+                    <p class="author">
+                        By James Stewart
+                    </p>
+
+                    <p class="available">
+                        ● Available
+                    </p>
+
+                    <button
+                        class="borrow-btn"
+                        onclick="borrowBook('Advanced Mathematics')"
+                    >
+                        Borrow Book
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ABOUT
+    ========================= -->
+
+    <section class="about" id="about">
+
+        <h2>About Our Library</h2>
+
+        <p>
+
+            Our university library provides students and
+            researchers with access to thousands of books,
+            journals, research papers and digital resources.
+
+            Our goal is to create an environment where students
+            can learn, research and develop their knowledge.
+
+        </p>
+
+    </section>
+
+
+    <!-- =========================
+         CONTACT
+    ========================= -->
+
+    <section id="contact">
+
+        <div class="section-title">
+
+            <h2>Contact Library</h2>
+
+            <p>
+                Need help? Contact the library.
+            </p>
+
+        </div>
+
+        <div style="text-align:center;">
+
+            <p>
+                📧 Email: library@university.ac.za
+            </p>
+
+            <p>
+                📞 Phone: +27 00 000 0000
+            </p>
+
+            <p>
+                📍 University Campus Library
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FOOTER
+    ========================= -->
+
+    <footer>
+
+        <p>
+            © 2026 <span>University Library</span>.
+            All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script>
+
+        function borrowBook(bookName) {
+
+            alert(
+                "You have selected: " +
+                bookName +
+                "\n\nPlease login to borrow this book."
+            );
+
+        }
+
+
+        function searchBooks() {
+
+            let search =
+                document.getElementById("searchInput")
+                .value
+                .toLowerCase();
+
+            let books =
+                document.querySelectorAll(".book");
+
+            books.forEach(function(book) {
+
+                let title =
+                    book.querySelector("h3")
+                    .textContent
+                    .toLowerCase();
+
+                let author =
+                    book.querySelector(".author")
+                    .textContent
+                    .toLowerCase();
+
+                if (
+                    title.includes(search) ||
+                    author.includes(search)
+                ) {
+
+                    book.style.display = "block";
+
+                } else {
+
+                    book.style.display = "none";
+
+                }
+
+            });
+
+        }
+
+    </script>
+
+</body>
+</html>

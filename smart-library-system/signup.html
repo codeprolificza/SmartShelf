@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        .signup-wrapper {
+            min-height: calc(100vh - 75px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .signup-card {
+            background: white;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            padding: 45px 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .signup-card h2 {
+            color: #071a2b;
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .signup-card p.subtitle {
+            color: #777;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 6px;
+            margin-top: 16px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00a8ff;
+        }
+
+        .field-error {
+            display: none;
+            color: #d63031;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .signup-btn {
+            width: 100%;
+            margin-top: 26px;
+            padding: 14px;
+            background: #00a8ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .signup-btn:hover {
+            background: #0077b6;
+        }
+
+        .login-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #00a8ff;
+            font-size: 14px;
+        }
+
+        @media(max-width: 500px) {
+            .signup-card {
+                padding: 30px 22px;
+            }
+            .signup-card h2 {
+                font-size: 24px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+        </ul>
+    </nav>
+
+    <div class="signup-wrapper">
+
+        <div class="signup-card">
+
+            <h2>Create Account</h2>
+            <p class="subtitle">Sign up with your UFH student email</p>
+
+            <form id="signupForm" onsubmit="handleSignup(event)">
+
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" required>
+
+                <label for="studentEmail">Email</label>
+                <input type="email" id="studentEmail" placeholder="student@ufh.ac.za" required>
+                <p class="field-error" id="emailError">Please use your @ufh.ac.za email address.</p>
+
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" required>
+
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" required>
+                <p class="field-error" id="passwordError">Passwords do not match.</p>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+
+            </form>
+
+            <a href="login.html" class="login-link">Already have an account? Log in</a>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        function handleSignup(e) {
+            e.preventDefault();
+
+            let email = document.getElementById('studentEmail').value.trim().toLowerCase();
+            let pass = document.getElementById('signupPassword').value;
+            let confirmPass = document.getElementById('confirmPassword').value;
+
+            let emailError = document.getElementById('emailError');
+            let passwordError = document.getElementById('passwordError');
+
+            let hasError = false;
+
+            if (!email.endsWith('@ufh.ac.za')) {
+                emailError.style.display = "block";
+                hasError = true;
+            } else {
+                emailError.style.display = "none";
+            }
+
+            if (pass !== confirmPass) {
+                passwordError.style.display = "block";
+                hasError = true;
+            } else {
+                passwordError.style.display = "none";
+            }
+
+            if (hasError) return;
+
+            alert("Account created! (Note: this doesn't save permanently yet — a backend is needed for that.) You can now go to the login page.");
+            window.location.href = "login.html";
+        }
+
+    </script>
+
+</body>
+</html>

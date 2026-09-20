@@ -165,8 +165,6 @@ Contributors should follow the development practices and contribution guidelines
 
 ## Contributors
 
-## Contributors
-
 | Contributor              | GitHub                                                                       |
 | :----------------------- | :--------------------------------------------------------------------------- |
 | **Liyabona April**       | [@Liya030727](https://github.com/Liya030727)                                 |

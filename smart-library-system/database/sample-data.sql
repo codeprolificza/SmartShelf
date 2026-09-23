@@ -28,6 +28,18 @@ INSERT INTO book (title, category_id, publication_date, copies_owned) VALUES
 ('Advanced Mathematics', 2, '2018-09-01', 2),
 ('Things Fall Apart', 4, '1958-06-17', 6);
 
+-- 3a. Physical copies (the application borrows and reserves individual copies)
+INSERT INTO book_copy (book_id, barcode, copy_status) VALUES
+(1, 'BOOK-1-COPY-1', 'AVAILABLE'),
+(1, 'BOOK-1-COPY-2', 'AVAILABLE'),
+(1, 'BOOK-1-COPY-3', 'AVAILABLE'),
+(1, 'BOOK-1-COPY-4', 'AVAILABLE'),
+(1, 'BOOK-1-COPY-5', 'AVAILABLE'),
+(2, 'BOOK-2-COPY-1', 'AVAILABLE'),
+(3, 'BOOK-3-COPY-1', 'AVAILABLE'),
+(4, 'BOOK-4-COPY-1', 'AVAILABLE'),
+(5, 'BOOK-5-COPY-1', 'AVAILABLE');
+
 -- 4. Link books to their authors (book_id, author_id refer to insert order above)
 INSERT INTO book_author (book_id, author_id) VALUES
 (1, 1),  -- Introduction to Programming -> John Smith
@@ -50,11 +62,14 @@ INSERT INTO member (first_name, last_name, active_status_id) VALUES
 INSERT INTO reservation_status (status_value) VALUES
 ('Pending'),
 ('Fulfilled'),
-('Cancelled');
+('Cancelled'),
+('Ready');
 
 -- 8. A sample loan (member 1 borrows book 1)
-INSERT INTO loan (book_id, member_id, loan_date) VALUES
-(1, 1, CURRENT_DATE);
+INSERT INTO loan (book_id, member_id, copy_id, loan_date, due_date) VALUES
+(1, 1, 1, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days');
+
+UPDATE book_copy SET copy_status = 'BORROWED' WHERE copy_id = 1;
 
 -- 9. A sample reservation (member 1 reserves book 4, status = Pending)
 INSERT INTO reservation (book_id, member_id, reservation_status_id) VALUES

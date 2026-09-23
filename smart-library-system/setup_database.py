@@ -1,7 +1,7 @@
 import psycopg2
 import os
 # ================================================
-# Sets up all 11 tables + sample data directly
+# Sets up the complete SmartShelf schema + sample data directly
 # from Python, on the exact same PostgreSQL server
 # your Flask app will use (127.0.0.1:5432).
 # ================================================
@@ -22,7 +22,7 @@ with open("database/schema.sql", "r") as f:
 
 cursor.execute(schema_sql)
 conn.commit()
-print("Schema created: all 11 tables are now in place.")
+print("Complete SmartShelf schema created.")
 
 # Read and run sample-data.sql
 with open("database/sample-data.sql", "r") as f:

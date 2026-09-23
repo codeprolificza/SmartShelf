@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Research - UniLibrary</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+            line-height: 1.7;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00a8ff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 15px;
+        }
+
+        .nav-links a:hover {
+            color: #00a8ff;
+        }
+
+        .hero {
+            background: #071a2b;
+            color: white;
+            padding: 70px 7%;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            max-width: 850px;
+            color: #c8d7e4;
+            font-size: 17px;
+        }
+
+        .container {
+            width: 86%;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .section {
+            padding: 55px 0;
+        }
+
+        .section h2 {
+            color: #071a2b;
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section-intro {
+            max-width: 900px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .welcome-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            margin-top: -25px;
+            position: relative;
+        }
+
+        .welcome-box h3 {
+            color: #00a8ff;
+            margin-bottom: 12px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+
+        .card h3 {
+            color: #071a2b;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #555;
+        }
+
+        .card ul {
+            padding-left: 20px;
+            color: #555;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .stat {
+            background: white;
+            text-align: center;
+            padding: 22px 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.06);
+        }
+
+        .stat h3 {
+            color: #00a8ff;
+            font-size: 28px;
+        }
+
+        .stat p {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .news-card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 18px;
+            border-radius: 10px;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.06);
+        }
+
+        .news-card h3 {
+            color: #071a2b;
+            margin-bottom: 8px;
+        }
+
+        .news-card p {
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .news-card a {
+            color: #00a8ff;
+            font-weight: bold;
+        }
+
+        .contact-box {
+            background: #071a2b;
+            color: white;
+            padding: 35px;
+            border-radius: 12px;
+        }
+
+        .contact-box h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .contact-box p {
+            color: #c8d7e4;
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            background: #050f1c;
+            color: #9db4c9;
+            text-align: center;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        @media(max-width: 800px) {
+            .cards,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                padding: 0 5%;
+            }
+
+            .nav-links {
+                gap: 12px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">
+            Uni<span>Library</span>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/search">Books</a></li>
+            <li><a href="/categories">Categories</a></li>
+            <li><a href="/resources">Resources</a></li>
+            <li><a href="/research">Research</a></li>
+            <li><a href="/login">Login</a></li>
+        </ul>
+    </nav>
+
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container">
+            <h1>Research at University of Fort Hare</h1>
+
+            <p>
+                Explore research, innovation, partnerships and academic
+                initiatives that contribute to knowledge, development and
+                positive social impact.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- WELCOME -->
+    <section class="section">
+        <div class="container">
+
+            <div class="welcome-box">
+
+                <h3>Research, Partnerships and Innovation</h3>
+
+                <p>
+                    The Research, Partnerships and Innovation portfolio at
+                    the University of Fort Hare supports knowledge advancement,
+                    impactful research, collaboration and innovation that
+                    responds to societal needs.
+                </p>
+
+                <br>
+
+                <p>
+                    The portfolio supports established and emerging scholars
+                    while encouraging partnerships with industry, government,
+                    communities and international institutions.
+                </p>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ABOUT -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>About UFH Research</h2>
+
+            <p class="section-intro">
+                Research is an important part of the University of Fort Hare's
+                academic mission. UFH supports research that contributes to
+                society while promoting research capacity, partnerships,
+                ethics and academic excellence.
+            </p>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <h3>45</h3>
+                    <p>NRF Rated Researchers</p>
+                </div>
+
+                <div class="stat">
+                    <h3>3205</h3>
+                    <p>Graduates for 2023</p>
+                </div>
+
+                <div class="stat">
+                    <h3>67%</h3>
+                    <p>Female Graduates</p>
+                </div>
+
+                <div class="stat">
+                    <h3>557</h3>
+                    <p>Postgraduate Students</p>
+                </div>
+
+                <div class="stat">
+                    <h3>2648</h3>
+                    <p>Undergraduate Students</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH NICHE AREAS -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Niche Areas</h2>
+
+            <p class="section-intro">
+                UFH research includes areas that address local, regional,
+                national and global challenges.
+            </p>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>Renewable Energy</h3>
+                    <p>
+                        Research focused on renewable energy and innovative
+                        approaches to sustainable energy development.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Sustainable Agriculture, Water Usage and Climate Change</h3>
+                    <p>
+                        Research examining sustainable agriculture, water usage
+                        and the impacts of climate change.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Infectious Diseases and Medicinal Plants</h3>
+                    <p>
+                        Research addressing infectious diseases and the study
+                        of medicinal plants.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Research in Inclusion and Township Economies</h3>
+                    <p>
+                        Research focused on inclusion and township economies.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH INSTITUTES -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Institutes</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>Fort Hare Institute for Technology</h3>
+                    <p>
+                        A research institute associated with the Faculty of
+                        Science and Agriculture.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Fort Hare Institute for Social and Economic Research</h3>
+                    <p>
+                        A research institute associated with the Faculty of
+                        Social Sciences and Humanities.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH CENTRES -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Centres</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>SAMRC Microbial Water Quality Monitoring Centre</h3>
+                    <p>
+                        Faculty of Science and Agriculture.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Risk and Vulnerability Science Centre</h3>
+                    <p>
+                        Faculty of Science and Agriculture.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Centre for Leadership Ethics in Africa</h3>
+                    <p>
+                        Faculty of Social Sciences and Humanities.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Fort Hare Centre for Entrepreneurship and Rapid Incubator</h3>
+                    <p>
+                        Faculty of Management and Commerce.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH CHAIRS -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Chairs</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>AngloGold Ashanti Research Chair in Dairy Science and Technology</h3>
+                </div>
+
+                <div class="card">
+                    <h3>SARChI Chair in Social Change</h3>
+                </div>
+
+                <div class="card">
+                    <h3>SARChI Chair in Sexualities, Genders and Queer Studies</h3>
+                </div>
+
+                <div class="card">
+                    <h3>UNESCO Oliver Tambo Chair of Human Rights</h3>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH ETHICS -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Ethics</h2>
+
+            <p class="section-intro">
+                The University of Fort Hare places strong importance on
+                ethical research, academic integrity, dignity and equity.
+            </p>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>SREOC</h3>
+                    <p>
+                        Senate Research Ethics Oversight Committee.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>IFREC</h3>
+                    <p>
+                        Inter Faculty Research Ethics Committee.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>AREC</h3>
+                    <p>
+                        Animal Research Ethics Committee.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>HREC</h3>
+                    <p>
+                        Health Research Ethics Committee.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESEARCH DEPARTMENTS -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Research Departments</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>Intellectual Property and Innovation</h3>
+                    <p>
+                        Supports the protection, management and
+                        commercialisation of intellectual property resulting
+                        from research and innovation.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Research Output</h3>
+                    <p>
+                        Supports academics and postgraduate students with
+                        research outputs, publishing and research productivity.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Grants Management</h3>
+                    <p>
+                        Supports researchers with research funding,
+                        grant processes, compliance, budgets and performance
+                        tracking.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Finance</h3>
+                    <p>
+                        Coordinates financial activities related to research
+                        grants, budgets and financial management.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Research Partnerships and Innovation</h3>
+                    <p>
+                        Encourages partnerships, collaboration, research
+                        development and knowledge sharing.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- LATEST RESEARCH NEWS -->
+    <section class="section">
+
+        <div class="container">
+
+            <h2>Latest Research News</h2>
+
+            <div class="news-card">
+
+                <h3>
+                    New thinking on African governance brought to the fore
+                    during SAAPAM conference at UFH
+                </h3>
+
+                <p>
+                    August 26, 2026
+                </p>
+
+                <a
+                    href="https://www.ufh.ac.za/research/new-thinking-on-african-governance-brought-to-the-fore-during-saapam-conference-at-ufh"
+                    target="_blank">
+                    Read Article →
+                </a>
+
+            </div>
+
+
+            <div class="news-card">
+
+                <h3>
+                    UFH Leads Eastern Cape Universities and Surpasses
+                    National Average in Latest DHET Research Outputs Report
+                </h3>
+
+                <p>
+                    June 11, 2026
+                </p>
+
+                <a
+                    href="https://www.ufh.ac.za/research/ufh-leads-eastern-cape-universities-and-surpasses-national-average-in-latest-dhet-research-outputs-report"
+                    target="_blank">
+                    Read Article →
+                </a>
+
+            </div>
+
+
+            <div class="news-card">
+
+                <h3>
+                    UFH Research Brings New Perspective to Understanding
+                    Energy Poverty
+                </h3>
+
+                <p>
+                    September 18, 2026
+                </p>
+
+                <a
+                    href="https://www.ufh.ac.za/research/ufh-research-brings-new-perspective-to-understanding-energy-poverty"
+                    target="_blank">
+                    Read Article →
+                </a>
+
+            </div>
+
+
+            <div class="news-card">
+
+                <h3>
+                    UFH Researchers Add to South African Music Scholarship
+                    at SASRIM 2026 Conference
+                </h3>
+
+                <p>
+                    September 10, 2026
+                </p>
+
+                <a
+                    href="https://www.ufh.ac.za/research/ufh-researchers-add-to-south-african-music-scholarship-at-sasrim-2026-conference"
+                    target="_blank">
+                    Read Article →
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CONTACT -->
+    <section class="section">
+
+        <div class="container">
+
+            <div class="contact-box">
+
+                <h2>Research Contact Details</h2>
+
+                <p>
+                    <strong>Office of the DVC Research, Partnerships and Innovation</strong>
+                </p>
+
+                <p>Executive Operations Manager: Mr. Fundile Simane</p>
+                <p>Email: fsimane@ufh.ac.za</p>
+                <p>Tel: +27 40 602 2814</p>
+
+                <br>
+
+                <p>
+                    <strong>Senior Administrator</strong>
+                </p>
+
+                <p>Mr. Chumani Lungisa</p>
+                <p>Email: clungisa@ufh.ac.za</p>
+                <p>Tel: +27 43 704 7095</p>
+
+                <br>
+
+                <p>
+                    <strong>Director: Postgraduate Studies & Postdoctoral Research Fellows</strong>
+                </p>
+
+                <p>Prof Karabo Shale</p>
+                <p>Tel: +27 40 602 2686</p>
+                <p>Email: kshale@ufh.ac.za</p>
+
+                <br>
+
+                <p>
+                    <strong>Director: Research and Innovation</strong>
+                </p>
+
+                <p>Dr Aceme Nyika</p>
+                <p>Tel: +27 43 704 7384/7512 (EL)</p>
+                <p>Tel: +27 40 602 2516 (Alice)</p>
+                <p>Email: anyika@ufh.ac.za</p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <div class="footer">
+        <p>© 2026 UniLibrary — University Library</p>
+    </div>
+
+</body>
+</html>

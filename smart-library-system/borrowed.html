@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Borrowed Books - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header h1 span { color: #00a8ff; }
+        .page-header p { color: #ccc; }
+
+        .content { padding: 45px 7%; }
+
+        .filters { display: flex; gap: 10px; margin-bottom: 25px; }
+        .filter-btn {
+            padding: 8px 18px; border: 2px solid #ddd; border-radius: 20px;
+            background: white; color: #555; font-size: 14px; cursor: pointer;
+        }
+        .filter-btn.active { border-color: #00a8ff; background: #00a8ff; color: white; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table {
+            width: 100%; border-collapse: collapse; background: white; border-radius: 10px;
+            overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+        th, td { text-align: left; padding: 14px 18px; font-size: 14px; }
+        th { background: #071a2b; color: white; }
+        td { border-bottom: 1px solid #eee; color: #333; }
+
+        .status-due { color: #d63031; font-weight: bold; }
+        .status-out { color: #e17055; font-weight: bold; }
+        .status-ok { color: green; font-weight: bold; }
+
+        @media(max-width: 650px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
+        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
+        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
+        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
+        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
+    </div>
+
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-student.html">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>My <span>Borrowed Books</span></h1>
+        <p>Full history of books you've borrowed, current and past.</p>
+    </div>
+
+    <div class="content">
+
+        <div class="filters" id="filterBar">
+            <button class="filter-btn active" data-status="all" onclick="setFilter(this)">All</button>
+            <button class="filter-btn" data-status="Currently Out" onclick="setFilter(this)">Currently Out</button>
+            <button class="filter-btn" data-status="Due Soon" onclick="setFilter(this)">Due Soon</button>
+            <button class="filter-btn" data-status="Returned" onclick="setFilter(this)">Returned</button>
+        </div>
+
+        <div class="table-scroll">
+        <table style="min-width:650px;">
+            <tr>
+                <th>Book Title</th>
+                <th>Borrowed On</th>
+                <th>Due Date</th>
+                <th>Status</th>
+            </tr>
+            <tbody id="borrowedTableBody">
+                <tr><td colspan="4" style="text-align:center; color:#888;">Loading...</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+
+    <script>
+        function setFilter(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            let status = btn.getAttribute('data-status');
+
+            document.querySelectorAll('#borrowedTableBody tr').forEach(function(row) {
+                let rowStatus = row.getAttribute('data-status');
+                row.style.display = (status === "all" || rowStatus === status) ? "" : "none";
+            });
+        }
+
+        function loadBorrowedBooks() {
+
+            let borrowed = JSON.parse(localStorage.getItem('ufh_borrowed_books') || "[]");
+            let tbody = document.getElementById('borrowedTableBody');
+            tbody.innerHTML = "";
+
+            if (borrowed.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#888; padding:25px;'>You haven't borrowed any books yet. Head to <a href='search.html' style='color:#00a8ff;'>Search Books</a> to get started.</td></tr>";
+                return;
+            }
+
+            borrowed.forEach(function(book) {
+
+                let statusClass = "status-ok";
+                if (book.status === "Currently Out") statusClass = "status-out";
+                if (book.status === "Overdue") statusClass = "status-due";
+
+                let row = document.createElement('tr');
+                row.setAttribute('data-status', book.status === "Currently Out" ? "Currently Out" : (book.status === "Overdue" ? "Due Soon" : "Returned"));
+                row.innerHTML =
+                    "<td>" + book.title + "</td>" +
+                    "<td>" + book.borrowedOn + "</td>" +
+                    "<td>" + book.dueDate + "</td>" +
+                    "<td class='" + statusClass + "'>" + book.status + "</td>";
+
+                tbody.appendChild(row);
+            });
+        }
+
+        loadBorrowedBooks();
+    </script>
+
+</body>
+</html>

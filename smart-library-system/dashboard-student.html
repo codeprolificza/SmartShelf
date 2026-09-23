@@ -195,12 +195,21 @@
 </head>
 <body>
 
+    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
+        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
+        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
+        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
+        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
+    </div>
+
+
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="search.html">Search Books</a></li>
             <li><a href="dashboard-student.html">My Dashboard</a></li>
+            <li><a href="http://127.0.0.1:5000/logout" style="color:#ff7675;">Logout</a></li>
         </ul>
     </nav>
 
@@ -248,22 +257,47 @@
                 <th>Due Date</th>
                 <th>Status</th>
             </tr>
-            <tr>
-                <td>Introduction to Programming</td>
-                <td>10 Aug 2026</td>
-                <td>24 Aug 2026</td>
-                <td class="status-due">Due Soon</td>
-            </tr>
-            <tr>
-                <td>Data Science</td>
-                <td>02 Aug 2026</td>
-                <td>16 Aug 2026</td>
-                <td class="status-ok">Returned</td>
-            </tr>
+            <tbody id="borrowedTableBody">
+                <tr><td colspan="4" style="text-align:center; color:#888;">Loading...</td></tr>
+            </tbody>
         </table>
         </div>
 
     </div>
+
+    <script>
+
+        function loadBorrowedBooks() {
+
+            let borrowed = JSON.parse(localStorage.getItem('ufh_borrowed_books') || "[]");
+            let tbody = document.getElementById('borrowedTableBody');
+            tbody.innerHTML = "";
+
+            if (borrowed.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#888; padding:25px;'>You haven't borrowed any books yet. Head to <a href='search.html' style='color:#00a8ff;'>Search Books</a> to get started.</td></tr>";
+                return;
+            }
+
+            borrowed.forEach(function(book) {
+
+                let statusClass = "status-ok";
+                if (book.status === "Currently Out") statusClass = "status-due";
+                if (book.status === "Overdue") statusClass = "status-due";
+
+                let row = document.createElement('tr');
+                row.innerHTML =
+                    "<td>" + book.title + "</td>" +
+                    "<td>" + book.borrowedOn + "</td>" +
+                    "<td>" + book.dueDate + "</td>" +
+                    "<td class='" + statusClass + "'>" + book.status + "</td>";
+
+                tbody.appendChild(row);
+            });
+        }
+
+        loadBorrowedBooks();
+
+    </script>
 
 </body>
 </html>

@@ -184,29 +184,23 @@
 </head>
 <body>
 
-    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
-        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
-        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
-        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
-        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
-    </div>
-
-
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="dashboard-student.html">My Dashboard</a></li>
+            <li><a href="/account">My Dashboard</a></li>
         </ul>
     </nav>
 
     <div class="page-header">
         <h1>Your <span>Recommendations</span></h1>
-        <p>Books picked for you based on your interests.</p>
+        <p>Books picked for you based on your interests, borrowing history and library ratings.</p>
 
         <div class="based-on">
-            <span class="tag">💻 Computer Science</span>
-            <span class="tag">📐 Mathematics</span>
+            {% for interest in based_on %}
+            <span class="tag">📚 {{ interest }}</span>
+            {% else %}
+            <span class="tag">Set your interests to get better recommendations</span>
+            {% endfor %}
         </div>
     </div>
 
@@ -214,88 +208,75 @@
 
         <div class="books" id="bookContainer">
 
+            {% for book in recommended_books %}
             <div class="book">
-                <div class="match-badge">98% Match</div>
-                <div class="book-cover">💻</div>
+                <div class="book-cover">📖</div>
                 <div class="book-info">
-                    <h3>Introduction to Programming</h3>
-                    <p class="author">By John Smith</p>
-                    <p class="reason">Because you like Computer Science</p>
-                    <button class="borrow-btn" onclick="borrowBook('Introduction to Programming')">Borrow Book</button>
-                </div>
-            </div>
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">By {{ book.author }}</p>
 
-            <div class="book">
-                <div class="match-badge">95% Match</div>
-                <div class="book-cover">📊</div>
-                <div class="book-info">
-                    <h3>Data Science</h3>
-                    <p class="author">By Jake VanderPlas</p>
-                    <p class="reason">Because you like Computer Science</p>
-                    <button class="borrow-btn" onclick="borrowBook('Data Science')">Borrow Book</button>
-                </div>
-            </div>
+<div style="
+    color:#f5a623;
+    font-size:14px;
+    margin-bottom:8px;
+">
+    {% if book.review_count > 0 %}
+        ★ {{ book.average_rating }} / 5
+        <span style="color:#777; font-size:12px;">
+            ({{ book.review_count }}
+            {{ 'review' if book.review_count == 1 else 'reviews' }})
+        </span>
+    {% else %}
+        <span style="color:#999; font-size:12px;">
+            No ratings yet
+        </span>
+    {% endif %}
+</div>
 
-            <div class="book">
-                <div class="match-badge">90% Match</div>
-                <div class="book-cover">📐</div>
-                <div class="book-info">
-                    <h3>Advanced Mathematics</h3>
-                    <p class="author">By James Stewart</p>
-                    <p class="reason">Because you like Mathematics</p>
-                    <button class="borrow-btn" onclick="borrowBook('Advanced Mathematics')">Borrow Book</button>
+<p class="reason">{{ book.reason }}</p>
+                    <button
+    class="borrow-btn"
+    data-book-id="{{ book.id }}"
+    data-book-name="{{ book.title }}"
+    onclick="borrowBook(this.dataset.bookId, this.dataset.bookName)">
+    Borrow Book
+</button>
                 </div>
             </div>
-
-            <div class="book">
-                <div class="match-badge">80% Match</div>
-                <div class="book-cover">🤖</div>
-                <div class="book-info">
-                    <h3>Artificial Intelligence Basics</h3>
-                    <p class="author">By Stuart Russell</p>
-                    <p class="reason">Because you like Computer Science</p>
-                    <button class="borrow-btn" onclick="borrowBook('Artificial Intelligence Basics')">Borrow Book</button>
-                </div>
-            </div>
+            {% else %}
+            <p style="color:#888; grid-column:1/-1; text-align:center; padding:30px;">
+                No recommendations yet. <a href="/interests" style="color:#00a8ff;">Set your interests</a> or borrow a book to get personalized suggestions.
+            </p>
+            {% endfor %}
 
         </div>
 
     </div>
 
     <script>
-        function borrowBook(bookName) {
+        function borrowBook(bookId, bookName) {
 
-            let isLoggedIn = localStorage.getItem('ufh_logged_in') === 'true';
-
-            if (!isLoggedIn) {
-                alert("Please login to borrow this book.");
-                window.location.href = "login.html";
-                return;
-            }
-
-            let borrowed = JSON.parse(localStorage.getItem('ufh_borrowed_books') || "[]");
-
-            let alreadyBorrowed = borrowed.some(function(b) { return b.title === bookName && b.status !== "Returned"; });
-
-            if (alreadyBorrowed) {
-                alert("You already have \"" + bookName + "\" borrowed.");
-                return;
-            }
-
-            let today = new Date();
-            let dueDate = new Date();
-            dueDate.setDate(today.getDate() + 14);
-
-            borrowed.push({
-                title: bookName,
-                borrowedOn: today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-                dueDate: dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-                status: "Currently Out"
+            fetch('/borrow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: bookId })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status === 401) {
+                    alert("Please login to borrow this book.");
+                    window.location.href = "/login";
+                    return;
+                }
+                if (result.status !== 200) {
+                    alert(result.data.error || "Something went wrong.");
+                    return;
+                }
+                alert("You have borrowed: " + bookName);
+            })
+            .catch(() => {
+                alert("Could not reach the server. Is Flask running?");
             });
-
-            localStorage.setItem('ufh_borrowed_books', JSON.stringify(borrowed));
-
-            alert("You have borrowed: " + bookName + "\n\nCheck 'My Borrowed Books' on your dashboard to see it.");
         }
     </script>
 

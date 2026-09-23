@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Books - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00a8ff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover {
+            color: #00a8ff;
+        }
+
+        .page-header {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .page-header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 span {
+            color: #00a8ff;
+        }
+
+        .page-header p {
+            color: #ccc;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 650px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 0 25px;
+            border: none;
+            background: #00a8ff;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .content {
+            padding: 40px 7%;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 18px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            color: #555;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            border-color: #00a8ff;
+            background: #00a8ff;
+            color: white;
+        }
+.facet-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.facet-filters select {
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    color: #555;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.facet-filters select:focus {
+    outline: none;
+    border-color: #00a8ff;
+}
+        .books {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .book {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .book:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .book-cover {
+            height: 200px;
+            background: #071a2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 60px;
+        }
+
+        .book-info {
+            padding: 18px;
+        }
+
+        .book-info h3 {
+            margin-bottom: 6px;
+            color: #071a2b;
+            font-size: 16px;
+        }
+
+        .author {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .available {
+            color: green;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .borrow-btn,
+        .reserve-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .borrow-btn {
+            background: #00a8ff;
+            color: white;
+        }
+
+        .borrow-btn:hover {
+            background: #0077b6;
+        }
+
+        .reserve-btn {
+            background: #071a2b;
+            color: white;
+        }
+
+        .reserve-btn:hover {
+            background: #12395a;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #777;
+            padding: 40px 0;
+            display: none;
+        }
+
+        @media(max-width: 1000px) {
+            .books {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 650px) {
+            .nav-links {
+                display: none;
+            }
+
+            .books {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+
+        <ul class="nav-links">
+            <li><a href="/account">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+
+        <h1>Search <span>Books</span></h1>
+
+        <p>Find books by title, author or subject.</p>
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search for a book, author or subject..."
+                onkeyup="filterBooks()"
+            >
+
+            <button onclick="filterBooks()">
+                Search
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="content">
+
+        <div class="filters" id="filterBar">
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'all' else '' }}"
+                data-category="all"
+                onclick="setCategory(this)">
+                All
+            </button>
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'Computer Science' else '' }}"
+                data-category="Computer Science"
+                onclick="setCategory(this)">
+                Computer Science
+            </button>
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'Mathematics' else '' }}"
+                data-category="Mathematics"
+                onclick="setCategory(this)">
+                Mathematics
+            </button>
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'Science' else '' }}"
+                data-category="Science"
+                onclick="setCategory(this)">
+                Science
+            </button>
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'Novels' else '' }}"
+                data-category="Novels"
+                onclick="setCategory(this)">
+                Novels
+            </button>
+
+            <button
+                class="filter-btn {{ 'active' if initial_category == 'History' else '' }}"
+                data-category="History"
+                onclick="setCategory(this)">
+                History
+            </button>
+               </div>
+        <div class="facet-filters">
+
+    <select id="authorFilter" onchange="filterBooks()">
+        <option value="all">All Authors</option>
+    </select>
+
+    <select id="yearFilter" onchange="filterBooks()">
+        <option value="all">All Years</option>
+    </select>
+
+</div>
+
+        <!-- Books are loaded from Flask / PostgreSQL -->
+        <div class="books" id="bookContainer"></div>
+
+        <p class="no-results" id="noResults">
+            No books match your search.
+        </p>
+
+    </div>
+
+    <script>
+
+        let currentCategory = "{{ initial_category }}";
+        let searchTimeout = null;
+        let currentAuthor = "all";
+        let currentYear = "all";
+
+        // ============================================
+        // CATEGORY FILTER
+        // ============================================
+
+        function setCategory(btn) {
+
+            document.querySelectorAll('.filter-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
+
+            btn.classList.add('active');
+
+            currentCategory = btn.getAttribute('data-category');
+
+            filterBooks();
+        }
+
+ // ============================================
+// AUTHOR AND YEAR FACETS
+// ============================================
+
+function loadFacets(books) {
+
+    let authorFilter = document.getElementById('authorFilter');
+    let yearFilter = document.getElementById('yearFilter');
+
+    let authors = [];
+    let years = [];
+
+    books.forEach(function(book) {
+
+        if (book.author && book.author !== "Unknown") {
+            if (!authors.includes(book.author)) {
+                authors.push(book.author);
+            }
+        }
+
+        if (book.year) {
+            if (!years.includes(book.year)) {
+                years.push(book.year);
+            }
+        }
+
+    });
+
+    authors.sort();
+    years.sort(function(a, b) {
+        return b - a;
+    });
+
+    authorFilter.innerHTML = '<option value="all">All Authors</option>';
+
+    authors.forEach(function(author) {
+
+        let option = document.createElement('option');
+
+        option.value = author;
+        option.textContent = author;
+
+        authorFilter.appendChild(option);
+
+    });
+
+    yearFilter.innerHTML = '<option value="all">All Years</option>';
+
+    years.forEach(function(year) {
+
+        let option = document.createElement('option');
+
+        option.value = year;
+        option.textContent = year;
+
+        yearFilter.appendChild(option);
+
+    });
+
+}
+
+        // ============================================
+        // DISPLAY BOOKS
+        // ============================================
+
+
+           function renderBooks(books) {
+
+    let container = document.getElementById('bookContainer');
+
+    container.innerHTML = "";
+
+    if (books.length === 0) {
+
+        document.getElementById('noResults').style.display = "block";
+
+        return;
+    }
+
+    document.getElementById('noResults').style.display = "none";
+
+    books.forEach(function(book) {
+
+        let div = document.createElement('div');
+
+        div.className = "book";
+
+        div.setAttribute('data-category', book.category);
+
+        div.setAttribute('data-id', book.id);
+
+        let actionButton = "";
+
+        if (book.copies > 0) {
+
+            actionButton =
+                "<button class='borrow-btn' " +
+                "data-book-id='" + book.id + "' " +
+                "data-book-name='" + book.title + "'>" +
+                "Borrow Book" +
+                "</button>";
+
+        } else {
+
+            actionButton =
+                "<button class='reserve-btn' " +
+                "data-book-id='" + book.id + "' " +
+                "data-book-name='" + book.title + "'>" +
+                "Reserve Book" +
+                "</button>";
+
+        }
+
+        div.innerHTML =
+
+            "<div class='book-cover'>📖</div>" +
+
+            "<div class='book-info'>" +
+
+            "<h3>" + book.title + "</h3>" +
+
+            "<p class='author'>By " + book.author + "</p>" +
+
+            "<p>Published: " + book.year + "</p>" +
+
+            "<p class='available'>● " +
+            book.copies +
+            " copies available</p>" +
+
+            actionButton +
+
+            "</div>";
+
+        container.appendChild(div);
+
+    });
+
+}
+
+
+        // ============================================
+        // SEARCH
+        // ============================================
+
+   function filterBooks() {
+
+    clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(function() {
+
+        let search = document.getElementById('searchInput').value.trim();
+
+        currentAuthor = document.getElementById('authorFilter').value;
+        currentYear = document.getElementById('yearFilter').value;
+
+        fetch(
+            '/api/search?q=' +
+            encodeURIComponent(search) +
+            '&category=' +
+            encodeURIComponent(currentCategory) +
+            '&author=' +
+            encodeURIComponent(currentAuthor) +
+            '&year=' +
+            encodeURIComponent(currentYear)
+        )
+        .then(function(response) {
+
+            if (!response.ok) {
+                throw new Error("Search request failed.");
+            }
+
+            return response.json();
+
+        })
+        .then(function(books) {
+
+            loadFacets(books);
+
+            renderBooks(books);
+
+        })
+        .catch(function(error) {
+
+            console.error("Search error:", error);
+
+            document.getElementById('bookContainer').innerHTML = "";
+
+            document.getElementById('noResults').style.display = "block";
+
+        });
+
+    }, 250);
+
+}
+
+        // ============================================
+        // BORROW BOOK
+        // ============================================
+
+        function borrowBook(bookId, bookName) {
+
+            fetch('/borrow', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    book_id: bookId
+                })
+
+            })
+
+            .then(function(res) {
+
+                return res.json().then(function(data) {
+
+                    return {
+                        status: res.status,
+                        data: data
+                    };
+
+                });
+
+            })
+
+            .then(function(result) {
+
+                if (result.status === 401) {
+
+                    alert("Please login to borrow this book.");
+
+                    window.location.href = "/login";
+
+                    return;
+                }
+
+
+                if (result.status !== 200) {
+
+                    alert(
+                        result.data.error ||
+                        "Something went wrong."
+                    );
+
+                    return;
+                }
+
+
+                alert(
+                    "You have borrowed: " +
+                    bookName
+                );
+
+            })
+
+            .catch(function() {
+
+                alert(
+                    "Could not reach the server. Is Flask running?"
+                );
+
+            });
+
+        }
+
+
+        // ============================================
+        // RESERVE BOOK
+        // ============================================
+
+        function reserveBook(bookId, bookName) {
+
+            fetch('/reserve', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    book_id: bookId
+                })
+
+            })
+
+            .then(function(res) {
+
+                return res.json().then(function(data) {
+
+                    return {
+                        status: res.status,
+                        data: data
+                    };
+
+                });
+
+            })
+
+            .then(function(result) {
+
+                if (result.status === 401) {
+
+                    alert("Please login to reserve this book.");
+
+                    window.location.href = "/login";
+
+                    return;
+                }
+
+
+                if (result.status !== 200) {
+
+                    alert(
+                        result.data.error ||
+                        "Something went wrong."
+                    );
+
+                    return;
+                }
+
+
+                alert(
+                    "You have reserved: " +
+                    bookName
+                );
+
+            })
+
+            .catch(function() {
+
+                alert(
+                    "Could not reach the server. Is Flask running?"
+                );
+
+            });
+
+        }
+
+
+        // ============================================
+        // BUTTONS FOR DYNAMIC BOOKS
+        // ============================================
+
+        document
+            .getElementById('bookContainer')
+            .addEventListener('click', function(event) {
+
+
+                if (
+                    event.target.classList.contains('borrow-btn')
+                ) {
+
+                    let bookId =
+                        event.target.getAttribute('data-book-id');
+
+                    let bookName =
+                        event.target.getAttribute('data-book-name');
+
+
+                    borrowBook(bookId, bookName);
+
+                }
+
+
+                if (
+                    event.target.classList.contains('reserve-btn')
+                ) {
+
+                    let bookId =
+                        event.target.getAttribute('data-book-id');
+
+                    let bookName =
+                        event.target.getAttribute('data-book-name');
+
+
+                    reserveBook(bookId, bookName);
+
+                }
+
+            });
+
+
+        // ============================================
+        // LOAD BOOKS WHEN PAGE OPENS
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            filterBooks();
+
+        });
+
+    </script>
+
+</body>
+</html>

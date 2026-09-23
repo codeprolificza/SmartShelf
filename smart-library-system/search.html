@@ -204,6 +204,14 @@
 </head>
 <body>
 
+    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
+        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
+        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
+        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
+        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
+    </div>
+
+
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
@@ -342,7 +350,38 @@
         }
 
         function borrowBook(bookName) {
-            alert("You have selected: " + bookName + "\n\nPlease login to borrow this book.");
+
+            let isLoggedIn = localStorage.getItem('ufh_logged_in') === 'true';
+
+            if (!isLoggedIn) {
+                alert("Please login to borrow this book.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            let borrowed = JSON.parse(localStorage.getItem('ufh_borrowed_books') || "[]");
+
+            let alreadyBorrowed = borrowed.some(function(b) { return b.title === bookName && b.status !== "Returned"; });
+
+            if (alreadyBorrowed) {
+                alert("You already have \"" + bookName + "\" borrowed.");
+                return;
+            }
+
+            let today = new Date();
+            let dueDate = new Date();
+            dueDate.setDate(today.getDate() + 14);
+
+            borrowed.push({
+                title: bookName,
+                borrowedOn: today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                dueDate: dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                status: "Currently Out"
+            });
+
+            localStorage.setItem('ufh_borrowed_books', JSON.stringify(borrowed));
+
+            alert("You have borrowed: " + bookName + "\n\nCheck 'My Borrowed Books' on your dashboard to see it.");
         }
 
     </script>

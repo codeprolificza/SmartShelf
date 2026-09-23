@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header h1 span { color: #00a8ff; }
+        .page-header p { color: #ccc; margin-bottom: 20px; }
+
+        .search-box {
+            display: flex; max-width: 500px; background: white; border-radius: 8px; overflow: hidden;
+        }
+        .search-box input { flex: 1; padding: 13px; border: none; outline: none; font-size: 15px; }
+        .search-box button { padding: 0 22px; border: none; background: #00a8ff; color: white; cursor: pointer; }
+
+        .content { padding: 40px 7%; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table {
+            width: 100%; border-collapse: collapse; background: white; border-radius: 10px;
+            overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+        th, td { text-align: left; padding: 14px 18px; font-size: 14px; }
+        th { background: #071a2b; color: white; }
+        td { border-bottom: 1px solid #eee; color: #333; }
+
+        .status-badge {
+            font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: bold;
+        }
+        .status-badge.active { background: rgba(0,168,255,0.15); color: #00a8ff; }
+        .status-badge.suspended { background: rgba(214,48,49,0.12); color: #d63031; }
+
+        .action-link { color: #00a8ff; font-size: 13px; cursor: pointer; margin-right: 12px; }
+        .action-link.delete { color: #d63031; }
+
+        @media(max-width: 650px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
+        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
+        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
+        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
+        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
+    </div>
+
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-staff.html">Staff Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Manage <span>Students</span></h1>
+        <p>View and manage student accounts and their borrowing activity.</p>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="filterStudents()">
+            <button onclick="filterStudents()">Search</button>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="table-scroll">
+        <table style="min-width:700px;">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Books Out</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            <tbody id="studentTableBody">
+    {% for student in student_list %}
+    <tr>
+        <td>{{ student.name }} — ID: {{ student.id }}</td>
+        <td>{{ student.email }}</td>
+        <td>{{ student.books_out }}</td>
+
+        <td>
+            <span class="status-badge {{ 'suspended' if student.active_status_id == 3 else 'active' }}">
+                {{ student.status }}
+            </span>
+        </td>
+
+        <td>
+    <span class="action-link">View</span>
+{% if student.active_status_id == 3 %}
+        <span class="action-link"
+              data-student-id="{{ student.id }}"
+              onclick="reactivateStudent(this.dataset.studentId)">
+            Reactivate
+        </span>
+    {% else %}
+        <span class="action-link delete"
+              data-student-id="{{ student.id }}"
+              onclick="suspendStudent(this.dataset.studentId)">
+            Suspend
+        </span>
+    {% endif %}
+</td>
+    </tr>
+    {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+
+    <script>
+        function filterStudents() {
+            let search = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#studentTableBody tr').forEach(function(row) {
+                let name = row.querySelector('td').textContent.toLowerCase();
+                row.style.display = name.includes(search) ? "" : "none";
+            });
+        }
+
+        function suspendStudent(studentId) {
+    if (!confirm("Are you sure you want to suspend this student?")) {
+        return;
+    }
+
+    fetch(`/api/students/${studentId}/suspend`, {
+        method: "POST"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        alert(data.message);
+        location.reload();
+    })
+    .catch(error => {
+        console.error(error);
+        alert("Something went wrong.");
+    });
+}
+
+
+function reactivateStudent(studentId) {
+    if (!confirm("Are you sure you want to reactivate this student?")) {
+        return;
+    }
+
+    fetch(`/api/students/${studentId}/reactivate`, {
+        method: "POST"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        alert(data.message);
+        location.reload();
+    })
+    .catch(error => {
+        console.error(error);
+        alert("Something went wrong.");
+    });
+}
+    </script>
+
+</body>
+</html>

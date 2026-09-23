@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Borrowed Books - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header h1 span { color: #00a8ff; }
+        .page-header p { color: #ccc; }
+
+        .content { padding: 45px 7%; }
+
+        .filters { display: flex; gap: 10px; margin-bottom: 25px; }
+        .filter-btn {
+            padding: 8px 18px; border: 2px solid #ddd; border-radius: 20px;
+            background: white; color: #555; font-size: 14px; cursor: pointer;
+        }
+        .filter-btn.active { border-color: #00a8ff; background: #00a8ff; color: white; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table {
+            width: 100%; border-collapse: collapse; background: white; border-radius: 10px;
+            overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+        th, td { text-align: left; padding: 14px 18px; font-size: 14px; }
+        th { background: #071a2b; color: white; }
+        td { border-bottom: 1px solid #eee; color: #333; }
+
+        .status-due { color: #d63031; font-weight: bold; }
+        .status-out { color: #e17055; font-weight: bold; }
+        .status-ok { color: green; font-weight: bold; }
+
+        @media(max-width: 650px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <
+            <li><a href="/account">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>My <span>Borrowed Books</span></h1>
+        <p>Full history of books you've borrowed, current and past.</p>
+    </div>
+
+    <div class="content">
+
+        <div class="filters" id="filterBar">
+            <button class="filter-btn active" data-status="all" onclick="setFilter(this)">All</button>
+            <button class="filter-btn" data-status="Currently Out" onclick="setFilter(this)">Currently Out</button>
+            <button class="filter-btn" data-status="Due Soon" onclick="setFilter(this)">Due Soon</button>
+            <button class="filter-btn" data-status="Overdue" onclick="setFilter(this)">Overdue</button>
+            <button class="filter-btn" data-status="Returned" onclick="setFilter(this)">Returned</button>
+        </div>
+
+                <div class="table-scroll">
+            <table style="min-width:650px;">
+                <tr>
+                    <th>Book Title</th>
+                    <th>Borrowed On</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+
+                <tbody id="borrowedTableBody">
+
+                    {% for loan in history %}
+
+                    <tr data-status="{{ loan.status }}">
+
+                        <td>{{ loan.title }}</td>
+                        <td>{{ loan.loan_date }}</td>
+                        <td>{{ loan.due_date }}</td>
+
+                        <td>
+                            {% if loan.status == "Returned" %}
+
+                                <span class="status-ok">
+                                    Returned
+                                </span>
+
+                            {% elif loan.status == "Overdue" %}
+
+                                <span class="status-due">
+                                    Overdue
+                                </span>
+
+                            {% elif loan.status == "Due Soon" %}
+
+                                <span class="status-due">
+                                    Due Soon
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-out">
+                                    Currently Out
+                                </span>
+
+                            {% endif %}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="4" style="text-align:center; color:#888; padding:25px;">
+                            You haven't borrowed any books yet.
+                            Head to
+                            <a href="/search" style="color:#00a8ff;">
+                                Search Books
+                            </a>
+                            to get started.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- My Reservations -->
+
+        <!-- My Reservations -->
+        <div style="margin-top:40px;">
+
+            <h2 style="color:#071a2b; margin-bottom:15px;">
+                My Reservations
+            </h2>
+
+            {% if reservations %}
+
+            <div class="table-scroll">
+                <table style="min-width:750px;">
+
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Reserved On</th>
+                        <th>Queue Position</th>
+                        <th>Status</th>
+                        <th>Expires</th>
+                    </tr>
+
+                    <tbody>
+
+                        {% for reservation in reservations %}
+
+                        <tr>
+
+                            <td>{{ reservation.title }}</td>
+
+                            <td>{{ reservation.reservation_date }}</td>
+
+                            <td>
+                                {{ reservation.queue_position }}
+                            </td>
+
+                            <td class="
+                                {% if reservation.status == 'Ready' %}
+                                    status-ok
+                                {% elif reservation.status == 'Cancelled' or reservation.status == 'Expired' %}
+                                    status-due
+                                {% else %}
+                                    status-out
+                                {% endif %}
+                            ">
+                                {{ reservation.status }}
+                            </td>
+
+                            <td>{{ reservation.expires_at }}</td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% else %}
+
+            <p style="color:#777;">
+                You currently have no reservations.
+            </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <script>
+        function setFilter(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            let status = btn.getAttribute('data-status');
+
+            document.querySelectorAll('#borrowedTableBody tr').forEach(function(row) {
+                let rowStatus = row.getAttribute('data-status');
+                row.style.display = (status === "all" || rowStatus === status) ? "" : "none";
+            });
+        }
+    </script>
+
+</body>
+</html>

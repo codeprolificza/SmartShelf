@@ -171,19 +171,10 @@
 </head>
 <body>
 
-    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
-        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
-        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
-        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
-        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
-    </div>
-
-
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="dashboard-student.html">My Dashboard</a></li>
+            <li><a href="/account">My Dashboard</a></li>
         </ul>
     </nav>
 
@@ -198,49 +189,14 @@
 
         <div class="interest-grid" id="interestGrid">
 
-            <div class="interest-card selected" onclick="toggleInterest(this)">
-                <div class="icon">💻</div>
-                <h3>Computer Science</h3>
-                <div class="check">✓ Selected</div>
-            </div>
-
-            <div class="interest-card" onclick="toggleInterest(this)">
-                <div class="icon">📐</div>
-                <h3>Mathematics</h3>
-                <div class="check">✓ Selected</div>
-            </div>
-
-            <div class="interest-card" onclick="toggleInterest(this)">
-                <div class="icon">🧪</div>
-                <h3>Science</h3>
-                <div class="check">✓ Selected</div>
-            </div>
-
-            <div class="interest-card" onclick="toggleInterest(this)">
+            {% for cat in all_categories %}
+            <div class="interest-card {{ 'selected' if cat.id in selected_ids else '' }}" data-id="{{ cat.id }}" onclick="toggleInterest(this)">
                 <div class="icon">📚</div>
-                <h3>Novels</h3>
+                <h3>{{ cat.name }}</h3>
                 <div class="check">✓ Selected</div>
             </div>
+            {% endfor %}
 
-            <div class="interest-card" onclick="toggleInterest(this)">
-                <div class="icon">🏛️</div>
-                <h3>History</h3>
-                <div class="check">✓ Selected</div>
-            </div>
-
-            <div class="interest-card" onclick="toggleInterest(this)">
-                <div class="icon">💼</div>
-                <h3>Business</h3>
-                <div class="check">✓ Selected</div>
-            </div>
-
-        </div>
-
-        <div class="email-pref">
-            <label>
-                <input type="checkbox" id="emailToggle" checked>
-                Email me when new books matching my interests are added
-            </label>
         </div>
 
         <button class="save-btn" onclick="saveInterests()">Save My Interests</button>
@@ -255,23 +211,33 @@
 
         function saveInterests() {
 
-            let selected = [];
+            let selectedIds = [];
 
-            document.querySelectorAll('.interest-card.selected h3').forEach(function(h3) {
-                selected.push(h3.textContent);
+            document.querySelectorAll('.interest-card.selected').forEach(function(card) {
+                selectedIds.push(parseInt(card.getAttribute('data-id')));
             });
 
-            let emailOn = document.getElementById('emailToggle').checked;
-
-            if (selected.length === 0) {
+            if (selectedIds.length === 0) {
                 alert("Please select at least one interest.");
                 return;
             }
 
-            alert(
-                "Interests saved: " + selected.join(", ") +
-                "\n\nEmail notifications: " + (emailOn ? "ON" : "OFF")
-            );
+            fetch('/api/save-interests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category_ids: selectedIds })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
+                    alert(result.data.error || "Something went wrong.");
+                    return;
+                }
+                alert("Your interests have been saved.");
+            })
+            .catch(() => {
+                alert("Could not reach the server. Is Flask running?");
+            });
         }
 
     </script>

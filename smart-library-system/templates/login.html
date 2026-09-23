@@ -126,20 +126,29 @@
             margin-top: 18px;
         }
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            outline: none;
-        }
+      input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #d9e0e6;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    background: #fafcfe;
+    color: #222;
+    transition: 0.2s;
+}
 
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-color: #00a8ff;
-        }
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #00a8ff;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.10);
+}
+
+input[type="email"]::placeholder {
+    color: #9aa7b2;
+}
 
         .login-btn-submit {
             width: 100%;
@@ -181,19 +190,9 @@
     </style>
 </head>
 <body>
-
-    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
-        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
-        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
-        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
-        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
-    </div>
-
-
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
         </ul>
     </nav>
 
@@ -216,18 +215,19 @@
                 <label for="username">Email</label>
                 <input type="email" id="username" name="username" placeholder="e.g. 202412345@ufh.ac.za" required>
                 <p id="emailError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;"></p>
+                <p id="accountError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;"></p>
 
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="6">
+                <input type="password" id="password" name="password" placeholder="Enter your password" required minlength="6">
                 <p id="passwordError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;">Password must be at least 6 characters.</p>
 
                 <button type="submit" class="login-btn-submit">Log In</button>
 
             </form>
 
-            <a href="forgot-password.html" class="back-home">Forgot your password?</a>
-            <a href="signup.html" class="back-home">Don't have an account? Sign up</a>
-            <a href="index.html" class="back-home">← Back to homepage</a>
+            <a href="/forgot-password" class="back-home">Forgot your password?</a>
+            <a href="/register" class="back-home">Don't have an account? Sign up</a>
+            <a href="/" class="back-home">← Back to homepage</a>
 
         </div>
 
@@ -243,7 +243,17 @@
             });
             el.classList.add('active');
             currentRole = el.getAttribute('data-role');
-        }
+        const emailInput = document.getElementById('username');
+
+        if (currentRole === "student") {
+        emailInput.placeholder = "e.g. 202412345@ufh.ac.za";
+    } else {
+        emailInput.placeholder = "e.g. 20245@ufh.ac.za";
+    }
+
+    }
+
+
 
         function handleLogin(e) {
             e.preventDefault();
@@ -252,11 +262,12 @@
             let password = document.getElementById('password').value;
             let emailError = document.getElementById('emailError');
             let passwordError = document.getElementById('passwordError');
+            let accountError = document.getElementById('accountError');
 
             emailError.style.display = "none";
             passwordError.style.display = "none";
+            accountError.style.display = "none";
 
-            // Email format rules: student = 9 digits before @ufh.ac.za, staff/admin = 5 digits
             let studentPattern = /^\d{9}@ufh\.ac\.za$/;
             let staffAdminPattern = /^\d{5}@ufh\.ac\.za$/;
 
@@ -276,43 +287,52 @@
                 return;
             }
 
-            // Check against accounts created via Sign Up (temporary stand-in
-            // for a real backend/database — this will be replaced once
-            // Python + PostgreSQL are connected).
-            let accounts = JSON.parse(localStorage.getItem('ufh_accounts') || "[]");
-            let account = accounts.find(function(acc) { return acc.email === email; });
+            // Real backend: checks the PostgreSQL 'member' table
+            // (now supports all three roles via the 'role' column)
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password, role: currentRole })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
 
-            if (!account) {
-                emailError.textContent = "No account found with this email. Please sign up first.";
+                    if (result.status === 403) {
+        accountError.textContent = result.data.error;
+        accountError.style.display = "block";
+        return;
+    }
+
+                    if (result.data.error.toLowerCase().includes("password")) {
+                        passwordError.textContent = result.data.error;
+                        passwordError.style.display = "block";
+                    } else {
+                        emailError.textContent = result.data.error;
+                        emailError.style.display = "block";
+                    }
+                    return;
+                }
+               const successMessage = document.createElement("p");
+successMessage.textContent = "Login successful. Welcome to UniLibrary!";
+successMessage.style.color = "#16803c";
+successMessage.style.background = "#eaf8ef";
+successMessage.style.border = "1px solid #b7e4c7";
+successMessage.style.padding = "10px";
+successMessage.style.borderRadius = "6px";
+successMessage.style.textAlign = "center";
+successMessage.style.marginTop = "15px";
+
+document.getElementById("loginForm").appendChild(successMessage);
+
+setTimeout(() => {
+    window.location.href = result.data.redirect;
+}, 1000);
+            })
+            .catch(() => {
+                emailError.textContent = "Could not reach the server. Is Flask running?";
                 emailError.style.display = "block";
-                return;
-            }
-
-            if (account.role !== currentRole) {
-                emailError.textContent = "This email is registered as \"" + account.role + "\", not \"" + currentRole + "\". Please select the correct role.";
-                emailError.style.display = "block";
-                return;
-            }
-
-            if (account.password !== password) {
-                passwordError.textContent = "Incorrect password. Please try again.";
-                passwordError.style.display = "block";
-                return;
-            }
-
-            localStorage.setItem('ufh_logged_in', 'true');
-            localStorage.setItem('ufh_user_email', email);
-            localStorage.setItem('ufh_user_role', currentRole);
-            localStorage.setItem('ufh_user_name', account.name);
-
-            // Send each role to its own dashboard page
-            if (currentRole === "student") {
-                window.location.href = "dashboard-student.html";
-            } else if (currentRole === "staff") {
-                window.location.href = "dashboard-staff.html";
-            } else if (currentRole === "admin") {
-                window.location.href = "dashboard-admin.html";
-            }
+            });
         }
 
     </script>

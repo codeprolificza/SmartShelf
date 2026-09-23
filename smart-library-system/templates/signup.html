@@ -159,18 +159,10 @@
 </head>
 <body>
 
-    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
-        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
-        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
-        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
-        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
-    </div>
-
-
     <nav>
         <div class="logo">Uni<span>Library</span></div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
+            <li><a href="/">Home</a></li>
         </ul>
     </nav>
 
@@ -183,19 +175,36 @@
 
             <form id="signupForm" onsubmit="handleSignup(event)">
 
-                <label>I am a:</label>
-                <div class="role-select" id="roleSelect" style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div class="role-option active" data-role="student" onclick="selectRole(this)" style="flex:1; text-align:center; padding:10px 5px; border:2px solid #eee; border-radius:8px; cursor:pointer; color:#555; font-size:13px;">Student</div>
-                    <div class="role-option" data-role="staff" onclick="selectRole(this)" style="flex:1; text-align:center; padding:10px 5px; border:2px solid #eee; border-radius:8px; cursor:pointer; color:#555; font-size:13px;">Staff</div>
-                    <div class="role-option" data-role="admin" onclick="selectRole(this)" style="flex:1; text-align:center; padding:10px 5px; border:2px solid #eee; border-radius:8px; cursor:pointer; color:#555; font-size:13px;">Admin</div>
-                </div>
-
                 <label for="fullName">Full Name</label>
                 <input type="text" id="fullName" required>
 
-                <label for="studentEmail">Email</label>
+                <label for="studentEmail">Student Email</label>
                 <input type="email" id="studentEmail" placeholder="e.g. 202412345@ufh.ac.za" required>
                 <p class="field-error" id="emailError">Please use your @ufh.ac.za email address.</p>
+
+                <label for="faculty">Faculty</label>
+                <select id="faculty" style="width:100%; padding:11px 14px; border:1px solid #ddd; border-radius:6px; font-size:14px; outline:none;">
+                    <option value="">Select your faculty</option>
+                    <option>Science and Agriculture</option>
+                    <option>Education</option>
+                    <option>Health Sciences</option>
+                    <option>Social Sciences and Humanities</option>
+                    <option>Law, Management and Commerce</option>
+                </select>
+
+                <label for="department">Department</label>
+<input
+    type="text"
+    id="department"
+    placeholder="Enter your department"
+>
+
+<label for="programme">Programme</label>
+<input
+    type="text"
+    id="programme"
+    placeholder="Enter your programme"
+>
 
                 <label for="signupPassword">Password</label>
                 <input type="password" id="signupPassword" required>
@@ -208,7 +217,9 @@
 
             </form>
 
-            <a href="login.html" class="login-link">Already have an account? Log in</a>
+            <p style="text-align:center; color:#999; font-size:12px; margin-top:14px;">Staff and Admin accounts are created by a library administrator, not through this page.</p>
+
+            <a href="/login" class="login-link">Already have an account? Log in</a>
 
         </div>
 
@@ -216,75 +227,75 @@
 
     <script>
 
-        let currentRole = "student";
-
-        function selectRole(el) {
-            document.querySelectorAll('.role-option').forEach(function(opt) {
-                opt.classList.remove('active');
-            });
-            el.classList.add('active');
-            currentRole = el.getAttribute('data-role');
-        }
-
         function handleSignup(e) {
             e.preventDefault();
 
-            let name = document.getElementById('fullName').value.trim();
+            let fullName = document.getElementById('fullName').value.trim();
             let email = document.getElementById('studentEmail').value.trim().toLowerCase();
-            let pass = document.getElementById('signupPassword').value;
+         let faculty = document.getElementById('faculty').value;
+let department = document.getElementById('department').value.trim();
+let programme = document.getElementById('programme').value.trim();
+let pass = document.getElementById('signupPassword').value;
             let confirmPass = document.getElementById('confirmPassword').value;
 
             let emailError = document.getElementById('emailError');
             let passwordError = document.getElementById('passwordError');
 
-            let hasError = false;
+            emailError.style.display = "none";
+            passwordError.style.display = "none";
 
-            // Email format: student = 9 digits before @ufh.ac.za, staff/admin = 5 digits
             let studentPattern = /^\d{9}@ufh\.ac\.za$/;
-            let staffAdminPattern = /^\d{5}@ufh\.ac\.za$/;
-            let emailValid = (currentRole === "student") ? studentPattern.test(email) : staffAdminPattern.test(email);
 
-            if (!emailValid) {
-                emailError.textContent = (currentRole === "student")
-                    ? "Student email must be 9 digits followed by @ufh.ac.za (e.g. 202412345@ufh.ac.za)."
-                    : "Staff/Admin email must be 5 digits followed by @ufh.ac.za (e.g. 12345@ufh.ac.za).";
+            if (!studentPattern.test(email)) {
+                emailError.textContent = "Student email must be 9 digits followed by @ufh.ac.za (e.g. 202412345@ufh.ac.za).";
                 emailError.style.display = "block";
-                hasError = true;
-            } else {
-                emailError.style.display = "none";
+                return;
             }
 
             if (pass.length < 6) {
                 passwordError.textContent = "Password must be at least 6 characters.";
                 passwordError.style.display = "block";
-                hasError = true;
-            } else if (pass !== confirmPass) {
+                return;
+            }
+            if (pass !== confirmPass) {
                 passwordError.textContent = "Passwords do not match.";
                 passwordError.style.display = "block";
-                hasError = true;
-            } else {
-                passwordError.style.display = "none";
-            }
-
-            if (hasError) return;
-
-            // Save the account in the browser so Login can check against it.
-            // (This is a temporary stand-in for a real backend/database.)
-            let accounts = JSON.parse(localStorage.getItem('ufh_accounts') || "[]");
-
-            let alreadyExists = accounts.some(function(acc) { return acc.email === email; });
-
-            if (alreadyExists) {
-                alert("An account with this email already exists. Please log in instead.");
-                window.location.href = "login.html";
                 return;
             }
 
-            accounts.push({ name: name, email: email, password: pass, role: currentRole });
-            localStorage.setItem('ufh_accounts', JSON.stringify(accounts));
+            // Real backend: saves to the PostgreSQL 'member' table
+            // (now supports all three roles via the 'role' column)
+            let nameParts = fullName.split(" ");
+            let firstName = nameParts[0];
+            let lastName = nameParts.slice(1).join(" ") || firstName;
 
-            alert("Account created! You can now log in with this email and password.");
-            window.location.href = "login.html";
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    password: pass,
+    faculty: faculty,
+    department: department,
+    programme: programme
+})
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
+                    emailError.textContent = result.data.error;
+                    emailError.style.display = "block";
+                    return;
+                }
+                alert("Account created! You can now log in.");
+                window.location.href = "/login";
+            })
+            .catch(() => {
+                emailError.textContent = "Could not reach the server. Is Flask running?";
+                emailError.style.display = "block";
+            });
         }
 
     </script>

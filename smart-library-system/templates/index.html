@@ -401,21 +401,16 @@
                 grid-template-columns: 1fr 1fr !important;
                 gap: 25px !important;
             }
+
+            .contact-grid {
+                grid-template-columns: 1fr !important;
+            }
         }
 
     </style>
 </head>
 
 <body>
-
-    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
-        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
-        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
-        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
-        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
-    </div>
-
-
 
     <!-- =========================
          NAVIGATION
@@ -430,7 +425,7 @@
         <ul class="nav-links">
 
             <li>
-                <a href="#home">Home</a>
+                <a href="/">Home</a>
             </li>
 
             <li>
@@ -438,7 +433,19 @@
             </li>
 
             <li>
-                <a href="#categories">Categories</a>
+                <a href="/categories">Categories</a>
+            </li>
+
+            <li>
+                <a href="/resources">Resources</a>
+            </li>
+
+            <li>
+                <a href="/research">Research</a>
+            </li>
+
+            <li>
+                <a href="/services">Services</a>
             </li>
 
             <li>
@@ -451,7 +458,7 @@
 
         </ul>
 
-        <a href="login.html" class="login-btn">
+        <a href="/login" class="login-btn">
             Login
         </a>
 
@@ -494,11 +501,10 @@
                 <span style="color:#ccc; font-size:14px;">I want to...</span>
                 <select id="quickAction" onchange="handleQuickAction()" style="padding:10px 16px; border-radius:6px; border:none; font-size:14px; cursor:pointer; max-width:260px;">
                     <option value="">Select an option</option>
-                    <option value="login.html">Log in to my account</option>
-                    <option value="search.html">Browse the book catalog</option>
-                    <option value="recommend-purchase.html">Recommend a purchase</option>
-                    <option value="forgot-password.html">Reset my password</option>
-                    <option value="signup.html">Create a new account</option>
+                    <option value="/login">Log in to my account</option>
+                    <option value="/search">Browse the book catalog</option>
+                    <option value="/forgot-password">Reset my password</option>
+                    <option value="/register">Create a new account</option>
                 </select>
             </div>
 
@@ -547,47 +553,27 @@
             <div>
                 <h2 style="color:#071a2b; font-size:26px; margin-bottom:20px; border-bottom:3px solid #00a8ff; display:inline-block; padding-bottom:8px;">Library Updates</h2>
 
-                <div style="display:flex; flex-direction:column; gap:16px; margin-top:15px;">
-
-                    <div style="background:white; border-radius:8px; padding:18px; box-shadow:0 3px 10px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <strong style="color:#071a2b;">New Computer Science titles added</strong>
-                            <p style="color:#777; font-size:13px; margin-top:4px;">5 new programming and AI books now available.</p>
-                        </div>
-                        <span style="color:#00a8ff; font-size:12px; font-weight:bold; white-space:nowrap;">SEP 03 '26</span>
-                    </div>
-
-                    <div style="background:white; border-radius:8px; padding:18px; box-shadow:0 3px 10px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <strong style="color:#071a2b;">Extended hours during exam week</strong>
-                            <p style="color:#777; font-size:13px; margin-top:4px;">The library will stay open until midnight from 20–27 October.</p>
-                        </div>
-                        <span style="color:#00a8ff; font-size:12px; font-weight:bold; white-space:nowrap;">AUG 28 '26</span>
-                    </div>
-
-                    <div style="background:white; border-radius:8px; padding:18px; box-shadow:0 3px 10px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <strong style="color:#071a2b;">"Recommend a Purchase" now open</strong>
-                            <p style="color:#777; font-size:13px; margin-top:4px;">Suggest a book you'd like the library to add to the catalog.</p>
-                        </div>
-                        <span style="color:#00a8ff; font-size:12px; font-weight:bold; white-space:nowrap;">AUG 15 '26</span>
-                    </div>
-
+                <div id="announcementsFeed" style="display:flex; flex-direction:column; gap:16px; margin-top:15px;">
+                    <p style="color:#999; font-size:14px;">Loading announcements...</p>
                 </div>
             </div>
 
             <div style="background:#071a2b; border-radius:10px; padding:28px; color:white; height:fit-content;">
                 <h3 style="font-size:18px; margin-bottom:18px;">📖 Opening Hours</h3>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px; color:#ccc; margin-bottom:22px;">
-                    <span>Mon – Fri</span><span style="text-align:right; font-weight:bold; color:white;">08:00 – 20:00</span>
-                    <span>Saturday</span><span style="text-align:right; font-weight:bold; color:white;">09:00 – 13:00</span>
-                    <span>Sunday</span><span style="text-align:right; font-weight:bold; color:#ff7675;">Closed</span>
+                    <span>Mon – Thur</span><span style="text-align:right; font-weight:bold; color:white;">08:00 – 00:00</span>
+                    <span>Friday</span>
+        <span style="text-align:right; font-weight:bold; color:white;">
+            08:30 – 20:30
+        </span>
+
+                    <span>Saturday</span><span style="text-align:right; font-weight:bold; color:white;">08:30 – 16:00</span>
+                    <span>Sunday</span><span style="text-align:right; font-weight:bold; color:#ff7675;">17:30 – 17:30</span>
                 </div>
                 <h3 style="font-size:16px; margin-bottom:10px;">Quick Links</h3>
                 <div style="display:flex; flex-direction:column; gap:8px; font-size:14px;">
-                    <a href="search.html" style="color:#00a8ff;">→ Browse the Catalog</a>
-                    <a href="recommend-purchase.html" style="color:#00a8ff;">→ Recommend a Purchase</a>
-                    <a href="login.html" style="color:#00a8ff;">→ My Account</a>
+                    <a href="/search" style="color:#00a8ff;">→ Browse the Catalog</a>
+                    <a href="/login" style="color:#00a8ff;">→ My Account</a>
                 </div>
             </div>
 
@@ -615,24 +601,24 @@
 
         <div class="categories">
 
-            <div class="category">
+            <div class="category" onclick="window.location.href='/search?category=Computer Science'">
                 <div class="icon">💻</div>
                 <h3>Computer Science</h3>
             </div>
 
-            <div class="category">
+            <div class="category" onclick="window.location.href='/search?category=Science'">
                 <div class="icon">🧪</div>
                 <h3>Science</h3>
             </div>
 
-            <div class="category">
+            <div class="category" onclick="window.location.href='/search?category=Mathematics'">
                 <div class="icon">📐</div>
                 <h3>Mathematics</h3>
             </div>
 
-            <div class="category">
+            <div class="category" onclick="window.location.href='/categories'">
                 <div class="icon">📚</div>
-                <h3>Literature</h3>
+                <h3>View All Categories</h3>
             </div>
 
         </div>
@@ -659,141 +645,24 @@
 
         <div class="books" id="bookContainer">
 
-
-            <!-- BOOK 1 -->
-
+            {% for book in featured_books %}
             <div class="book">
-
-                <div class="book-cover">
-                    💻
-                </div>
-
+                <div class="book-cover">📖</div>
                 <div class="book-info">
-
-                    <h3>
-                        Introduction to Programming
-                    </h3>
-
-                    <p class="author">
-                        By John Smith
-                    </p>
-
-                    <p class="available">
-                        ● Available
-                    </p>
-
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">By {{ book.author }}</p>
+                    <p class="available">● {{ book.copies }} copies available</p>
                     <button
-                        class="borrow-btn"
-                        onclick="borrowBook('Introduction to Programming')"
-                    >
-                        Borrow Book
-                    </button>
-
+                class="borrow-btn"
+                data-book-title="{{ book.title }}"
+                onclick="borrowBook(this.dataset.bookTitle)">
+                Borrow Book
+            </button>
                 </div>
-
             </div>
-
-
-            <!-- BOOK 2 -->
-
-            <div class="book">
-
-                <div class="book-cover">
-                    🧪
-                </div>
-
-                <div class="book-info">
-
-                    <h3>
-                        General Chemistry
-                    </h3>
-
-                    <p class="author">
-                        By Raymond Chang
-                    </p>
-
-                    <p class="available">
-                        ● Available
-                    </p>
-
-                    <button
-                        class="borrow-btn"
-                        onclick="borrowBook('General Chemistry')"
-                    >
-                        Borrow Book
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- BOOK 3 -->
-
-            <div class="book">
-
-                <div class="book-cover">
-                    📊
-                </div>
-
-                <div class="book-info">
-
-                    <h3>
-                        Data Science
-                    </h3>
-
-                    <p class="author">
-                        By Jake VanderPlas
-                    </p>
-
-                    <p class="available">
-                        ● Available
-                    </p>
-
-                    <button
-                        class="borrow-btn"
-                        onclick="borrowBook('Data Science')"
-                    >
-                        Borrow Book
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- BOOK 4 -->
-
-            <div class="book">
-
-                <div class="book-cover">
-                    📐
-                </div>
-
-                <div class="book-info">
-
-                    <h3>
-                        Advanced Mathematics
-                    </h3>
-
-                    <p class="author">
-                        By James Stewart
-                    </p>
-
-                    <p class="available">
-                        ● Available
-                    </p>
-
-                    <button
-                        class="borrow-btn"
-                        onclick="borrowBook('Advanced Mathematics')"
-                    >
-                        Borrow Book
-                    </button>
-
-                </div>
-
-            </div>
+            {% else %}
+            <p style="color:#888; grid-column: 1 / -1; text-align:center;">No books in the catalog yet.</p>
+            {% endfor %}
 
         </div>
 
@@ -813,25 +682,24 @@
 
         <div class="books">
 
+            {% for book in new_arrivals %}
             <div class="book">
-                <div class="book-cover">🤖</div>
+                <div class="book-cover">📖</div>
                 <div class="book-info">
-                    <h3>Artificial Intelligence Basics</h3>
-                    <p class="author">By Stuart Russell</p>
-                    <p class="available">● Available · Added this week</p>
-                    <button class="borrow-btn" onclick="borrowBook('Artificial Intelligence Basics')">Borrow Book</button>
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">By {{ book.author }}</p>
+                    <p class="available">● {{ book.copies }} copies available</p>
+                    <button
+    class="borrow-btn"
+    data-book-title="{{ book.title }}"
+    onclick="borrowBook(this.dataset.bookTitle)">
+    Borrow Book
+</button>
                 </div>
             </div>
-
-            <div class="book">
-                <div class="book-cover">🏛️</div>
-                <div class="book-info">
-                    <h3>Sapiens</h3>
-                    <p class="author">By Yuval Noah Harari</p>
-                    <p class="available">● Available · Added this week</p>
-                    <button class="borrow-btn" onclick="borrowBook('Sapiens')">Borrow Book</button>
-                </div>
-            </div>
+            {% else %}
+            <p style="color:#888; grid-column: 1 / -1; text-align:center;">No new arrivals yet.</p>
+            {% endfor %}
 
         </div>
 
@@ -868,79 +736,49 @@
 
         <div class="section-title">
 
-            <h2>Contact Library</h2>
+            <h2>Contact & Operating Hours</h2>
 
             <p>
-                Need help? Contact the library.
+                Need help? Reach out to your nearest campus library.
             </p>
 
         </div>
 
-        <div style="text-align:center;">
+        <div style="max-width:700px; margin:0 auto;" class="contact-grid"></div>
 
-            <p>
-                📧 Email: library@university.ac.za
-            </p>
+            <div style="background:white; border-radius:10px; padding:26px; box-shadow:0 5px 15px rgba(0,0,0,0.06); text-align:left;">
+                <h3 style="color:#071a2b; margin-bottom:12px;">📍 Alice Campus</h3>
+                <p style="color:#777; font-size:14px; margin-bottom:6px;">Address: <em>1 King Williams Town Road, Alice</em></p>
+                <p style="color:#777; font-size:14px; margin-bottom:6px;">Tel: <em>+27 (0)40 602 2441</em></p>
+                <p style="color:#777; font-size:14px; margin-bottom:6px;">Email: <em>Unilibrary@ufh.ac.za</em></p>
+                  <h4 style="color:#071a2b; margin-bottom:10px;">
+                Semester Hours
+            </h4>
+               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; color:#777; font-size:14px;">
 
-            <p>
-                📞 Phone: +27 00 000 0000
-            </p>
+        <span>Monday – Thursday</span>
+        <strong style="text-align:right; color:#00a8ff;">
+            08:30 – 00:00
+        </strong>
 
-            <p>
-                📍 University Campus Library
-            </p>
+        <span>Friday</span>
+        <strong style="text-align:right; color:#00a8ff;">
+            08:30 – 20:30
+        </strong>
 
-        </div>
+        <span>Saturday</span>
+        <strong style="text-align:right; color:#00a8ff;">
+            08:30 – 16:00
+        </strong>
 
-    </section>
-
-
-    <!-- =========================
-         RESOURCE PANELS
-    ========================= -->
-
-    <section style="background:white; padding:60px 7%;">
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:30px;" class="resource-panels">
-
-            <div>
-                <h3 style="color:#071a2b; font-size:16px; border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:15px;">For Students</h3>
-                <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
-                    <a href="search.html" style="color:#00a8ff;">→ Search Books</a>
-                    <a href="interests.html" style="color:#00a8ff;">→ My Interests</a>
-                    <a href="recommendations.html" style="color:#00a8ff;">→ Recommendations</a>
-                    <a href="borrowed.html" style="color:#00a8ff;">→ My Borrowed Books</a>
-                </div>
-            </div>
-
-            <div>
-                <h3 style="color:#071a2b; font-size:16px; border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:15px;">For Staff</h3>
-                <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
-                    <a href="dashboard-staff.html" style="color:#00a8ff;">→ Manage Books</a>
-                    <a href="loans.html" style="color:#00a8ff;">→ Manage Loans</a>
-                    <a href="students.html" style="color:#00a8ff;">→ Manage Students</a>
-                </div>
-            </div>
-
-            <div>
-                <h3 style="color:#071a2b; font-size:16px; border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:15px;">Account</h3>
-                <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
-                    <a href="login.html" style="color:#00a8ff;">→ Log In</a>
-                    <a href="signup.html" style="color:#00a8ff;">→ Sign Up</a>
-                    <a href="forgot-password.html" style="color:#00a8ff;">→ Forgot Password</a>
-                    <a href="profile.html" style="color:#00a8ff;">→ My Profile</a>
-                </div>
-            </div>
-
-            <div>
-                <h3 style="color:#071a2b; font-size:16px; border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:15px;">Help</h3>
-                <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
-                    <a href="recommend-purchase.html" style="color:#00a8ff;">→ Recommend a Purchase</a>
-                    <a href="#contact" style="color:#00a8ff;">→ Contact the Library</a>
-                    <a href="#about" style="color:#00a8ff;">→ About Us</a>
-                </div>
+        <span>Sunday</span>
+        <strong style="text-align:right; color:#00a8ff;">
+            13:30 – 17:30
+        </strong>
             </div>
 
         </div>
+
     </section>
 
 
@@ -963,6 +801,35 @@
     ========================= -->
 
     <script>
+
+        function loadAnnouncements() {
+            fetch('/api/announcements')
+                .then(res => res.json())
+                .then(items => {
+                    let container = document.getElementById('announcementsFeed');
+
+                    if (!items.length) {
+                        container.innerHTML = "<p style='color:#999; font-size:14px;'>No announcements yet.</p>";
+                        return;
+                    }
+
+                    container.innerHTML = "";
+                    items.forEach(function(item) {
+                        let div = document.createElement('div');
+                        div.style.cssText = "background:white; border-radius:8px; padding:18px; box-shadow:0 3px 10px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;";
+                        div.innerHTML =
+                            "<div><strong style='color:#071a2b;'>" + item.title + "</strong>" +
+                            "<p style='color:#777; font-size:13px; margin-top:4px;'>" + item.body + "</p></div>" +
+                            "<span style='color:#00a8ff; font-size:12px; font-weight:bold; white-space:nowrap;'>" + item.date + "</span>";
+                        container.appendChild(div);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('announcementsFeed').innerHTML = "<p style='color:#999; font-size:14px;'>Could not load announcements.</p>";
+                });
+        }
+
+        loadAnnouncements();
 
         function handleQuickAction() {
             let select = document.getElementById('quickAction');

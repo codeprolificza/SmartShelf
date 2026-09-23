@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommend a Purchase - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header h1 span { color: #00a8ff; }
+        .page-header p { color: #ccc; }
+
+        .content { padding: 45px 7%; max-width: 650px; margin: 0 auto; }
+
+        .form-card {
+            background: white; border-radius: 10px; padding: 35px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+
+        .form-card p.intro { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; margin-top: 16px; }
+        input[type="text"], textarea, select {
+            width: 100%; padding: 11px 14px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 14px; outline: none; font-family: inherit;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #00a8ff; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .submit-btn {
+            background: #00a8ff; color: white; border: none; padding: 12px 28px;
+            border-radius: 6px; font-size: 15px; cursor: pointer; margin-top: 24px;
+        }
+        .submit-btn:hover { background: #0077b6; }
+
+        .success-msg {
+            display: none; background: #eaf7ff; color: #071a2b; padding: 14px;
+            border-radius: 8px; font-size: 14px; margin-top: 18px;
+        }
+
+        @media(max-width: 650px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="/account">My Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Recommend a <span>Purchase</span></h1>
+        <p>Can't find a book you need? Suggest it and the library may add it to the catalog.</p>
+    </div>
+
+    <div class="content">
+
+        <div class="form-card">
+
+            <p class="intro">Fill in as much detail as you can — this helps library staff track down the right edition.</p>
+
+            <form onsubmit="submitRecommendation(event)">
+
+                <label for="bookTitle">Book Title</label>
+                <input type="text" id="bookTitle" required>
+
+                <label for="bookAuthor">Author (if known)</label>
+                <input type="text" id="bookAuthor">
+
+                <label for="bookCategory">Category</label>
+                <select id="bookCategory">
+                    <option>Computer Science</option>
+                    <option>Mathematics</option>
+                    <option>Science</option>
+                    <option>Novels</option>
+                    <option>History</option>
+                    <option>Business</option>
+                    <option>Other</option>
+                </select>
+
+                <label for="reason">Why should the library get this book?</label>
+                <textarea id="reason" placeholder="e.g. Required for my CSC 300 module, not currently in the catalog."></textarea>
+
+                <button type="submit" class="submit-btn">Submit Recommendation</button>
+
+            </form>
+
+            <div class="success-msg" id="successMsg">
+                ✅ Thanks! Your recommendation has been submitted to library staff for review.
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+         async function submitRecommendation(e) {
+        e.preventDefault();
+
+        const title = document.getElementById('bookTitle').value;
+        const author = document.getElementById('bookAuthor').value;
+        const reason = document.getElementById('reason').value;
+
+        try {
+            const response = await fetch('/api/recommend-purchase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    author: author,
+                    reason: reason
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || 'Something went wrong.');
+                return;
+            }
+
+            document.getElementById('successMsg').style.display = "block";
+            e.target.reset();
+
+        } catch (error) {
+            alert('Could not connect to the server.');
+        }
+    }
+    </script>
+
+</body>
+</html>

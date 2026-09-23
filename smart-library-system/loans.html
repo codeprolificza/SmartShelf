@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Loans - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header h1 span { color: #00a8ff; }
+        .page-header p { color: #ccc; }
+
+        .content { padding: 40px 7%; }
+
+        .filters { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 8px 18px; border: 2px solid #ddd; border-radius: 20px;
+            background: white; color: #555; font-size: 14px; cursor: pointer;
+        }
+        .filter-btn.active { border-color: #00a8ff; background: #00a8ff; color: white; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table {
+            width: 100%; border-collapse: collapse; background: white; border-radius: 10px;
+            overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+        th, td { text-align: left; padding: 14px 18px; font-size: 14px; }
+        th { background: #071a2b; color: white; }
+        td { border-bottom: 1px solid #eee; color: #333; }
+
+        .status-overdue { color: #d63031; font-weight: bold; }
+        .status-out { color: #e17055; font-weight: bold; }
+        .status-ok { color: green; font-weight: bold; }
+
+        .mark-btn {
+            background: #00a8ff; color: white; border: none; padding: 6px 14px;
+            border-radius: 5px; font-size: 12px; cursor: pointer;
+        }
+        .mark-btn:hover { background: #0077b6; }
+
+        @media(max-width: 650px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div style="background:#050f1c; color:#9db4c9; font-size:12px; padding:8px 7%; display:flex; justify-content:flex-end; gap:22px; flex-wrap:wrap;">
+        <a href="index.html" style="color:#9db4c9; text-decoration:none;">Home</a>
+        <a href="dashboard-student.html" style="color:#9db4c9; text-decoration:none;">My Account</a>
+        <a href="recommend-purchase.html" style="color:#9db4c9; text-decoration:none;">Recommend a Purchase</a>
+        <a href="forgot-password.html" style="color:#9db4c9; text-decoration:none;">Help</a>
+    </div>
+
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard-staff.html">Staff Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Manage <span>Loans</span></h1>
+        <p>Track every book currently on loan, due, or overdue.</p>
+    </div>
+
+    <div class="content">
+
+        <div class="filters">
+            <button class="filter-btn active" data-status="all" onclick="setFilter(this)">All</button>
+            <button class="filter-btn" data-status="On Loan" onclick="setFilter(this)">On Loan</button>
+            <button class="filter-btn" data-status="Overdue" onclick="setFilter(this)">Overdue</button>
+            <button class="filter-btn" data-status="Returned" onclick="setFilter(this)">Returned</button>
+        </div>
+
+        <div class="table-scroll">
+        <table style="min-width:750px;">
+            <tr>
+                <th>Book Title</th>
+                <th>Student</th>
+                <th>Loan Date</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            <tbody id="loansTableBody">
+                <tr data-status="Overdue">
+                    <td>Things Fall Apart</td>
+                    <td>Themba Zulu</td>
+                    <td>01 Aug 2026</td>
+                    <td>15 Aug 2026</td>
+                    <td class="status-overdue">Overdue</td>
+                    <td><button class="mark-btn" onclick="markReturned(this)">Mark Returned</button></td>
+                </tr>
+                <tr data-status="On Loan">
+                    <td>Introduction to Programming</td>
+                    <td>Luthando Rungqu</td>
+                    <td>10 Aug 2026</td>
+                    <td>24 Aug 2026</td>
+                    <td class="status-out">On Loan</td>
+                    <td><button class="mark-btn" onclick="markReturned(this)">Mark Returned</button></td>
+                </tr>
+                <tr data-status="Returned">
+                    <td>Data Science</td>
+                    <td>Amanda Ngcobo</td>
+                    <td>02 Aug 2026</td>
+                    <td>16 Aug 2026</td>
+                    <td class="status-ok">Returned</td>
+                    <td>—</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+
+    <script>
+        function setFilter(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            let status = btn.getAttribute('data-status');
+
+            document.querySelectorAll('#loansTableBody tr').forEach(function(row) {
+                let rowStatus = row.getAttribute('data-status');
+                row.style.display = (status === "all" || rowStatus === status) ? "" : "none";
+            });
+        }
+
+        function markReturned(btn) {
+            let row = btn.closest('tr');
+            row.setAttribute('data-status', 'Returned');
+            row.querySelector('.status-overdue, .status-out').className = 'status-ok';
+            row.querySelector('td:nth-child(5)').textContent = 'Returned';
+            btn.parentElement.textContent = '—';
+            alert("Marked as returned (Note: this doesn't save permanently yet — a backend is needed for that.)");
+        }
+    </script>
+
+</body>
+</html>

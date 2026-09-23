@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - University Library</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: #222; }
+        a { text-decoration: none; }
+
+        nav {
+            height: 75px; background: #071a2b; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 7%; position: sticky; top: 0;
+        }
+        .logo { color: white; font-size: 25px; font-weight: bold; }
+        .logo span { color: #00a8ff; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a { color: white; font-size: 16px; }
+        .nav-links a:hover { color: #00a8ff; }
+
+        .page-header { background: #071a2b; color: white; padding: 40px 7%; }
+        .page-header h1 { font-size: 30px; margin-bottom: 8px; }
+        .page-header p { color: #ccc; }
+
+        .content { padding: 45px 7%; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white; border-radius: 10px; padding: 28px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06); text-align: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 25px rgba(0,0,0,0.12); }
+
+        .card h3 { color: #071a2b; font-size: 16px; margin-bottom: 6px; }
+        .card p { color: #00a8ff; font-size: 13px; font-weight: bold; }
+
+        @media(max-width: 1000px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+        @media(max-width: 650px) { .nav-links { display: none; } .cards { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="/search">Books</a></li>
+            <li><a href="/account">My Account</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>Browse by Category</h1>
+        <p>Explore the collection by subject.</p>
+    </div>
+
+    <div class="content">
+        <div class="cards">
+            {% for cat in category_list %}
+            <div class="card" onclick="window.location.href='/search?category={{ cat.name | urlencode }}'">
+                <h3>{{ cat.name }}</h3>
+                <p>{{ cat.count }} book{{ 's' if cat.count != 1 else '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

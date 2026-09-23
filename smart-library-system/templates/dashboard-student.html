@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - University Library</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        a { text-decoration: none; }
+
+        /* NAV - matches homepage/login */
+
+        nav {
+            height: 75px;
+            background: #071a2b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            color: white;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00a8ff; }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-links a:hover { color: #00a8ff; }
+
+        /* WELCOME BANNER */
+
+        .welcome-banner {
+            background: #071a2b;
+            color: white;
+            padding: 40px 7%;
+        }
+
+        .welcome-banner h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-banner h1 span {
+            color: #00a8ff;
+        }
+
+        .welcome-banner p {
+            color: #ccc;
+        }
+
+        /* DASHBOARD GRID */
+
+        .dashboard {
+            padding: 50px 7%;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+
+        .card .icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: #071a2b;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .card a.btn {
+            display: inline-block;
+            background: #00a8ff;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .card a.btn:hover {
+            background: #0077b6;
+        }
+
+        /* MY BORROWED BOOKS */
+
+        .section-title {
+            margin: 55px 0 20px;
+        }
+
+        .section-title h2 {
+            color: #071a2b;
+            font-size: 24px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 20px;
+        }
+
+        th {
+            background: #071a2b;
+            color: white;
+            font-size: 14px;
+        }
+
+        td {
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .status-due {
+            color: #d63031;
+            font-weight: bold;
+        }
+
+        .status-ok {
+            color: green;
+            font-weight: bold;
+        }
+
+        @media(max-width: 800px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Uni<span>Library</span></div>
+        <ul class="nav-links">
+            <li><a href="/search">Search Books</a></li>
+            <li><a href="/dashboard">My Dashboard</a></li>
+            <li><a href="/logout" style="color:#ff7675;">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="welcome-banner">
+        <h1>Welcome back, <span>{{ first_name }}</span></h1>
+        <p>Here's what's happening in your library account.</p>
+    </div>
+
+    <div class="dashboard">
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="icon">🔍</div>
+                <h3>Search Books</h3>
+                <p>Browse the full catalog by title, author or subject.</p>
+                <a href="/search" class="btn">Go to Search</a>
+            </div>
+
+            <div class="card">
+                <div class="icon">⭐</div>
+                <h3>My Interests</h3>
+                <p>Choose your favorite categories to get email updates on new books.</p>
+                <a href="/interests" class="btn">Set Interests</a>
+            </div>
+
+            <div class="card">
+                <div class="icon">📖</div>
+                <h3>Recommendations</h3>
+                <p>See books picked for you based on your interests.</p>
+                <a href="/recommendations" class="btn">View Recommendations</a>
+            </div>
+                  <div class="card">
+                <div class="icon">👤</div>
+                <h3>My Profile</h3>
+                <p>View your personal information and library account details.</p>
+                <a href="/profile" class="btn">View Profile</a>
+            </div>
+                <div class="card">
+    <div class="icon">📚</div>
+    <h3>Recommend a Purchase</h3>
+    <p>Suggest a book that you think the library should add to its collection.</p>
+    <a href="/recommend-purchase" class="btn">Recommend a Book</a>
+        </div>
+        </div>
+
+                <!-- MY NOTIFICATIONS -->
+
+        <div class="section-title">
+            <h2>Notifications</h2>
+        </div>
+
+        {% if notifications %}
+
+            {% for notification in notifications %}
+
+            {% if notification.is_read %}
+            <div style="
+                background:white;
+                border-left:5px solid #ccc;
+                padding:18px 20px;
+                margin-bottom:15px;
+                border-radius:8px;
+                box-shadow:0 5px 15px rgba(0,0,0,0.06);
+            ">
+            {% else %}
+            <div style="
+                background:white;
+                border-left:5px solid #00a8ff;
+                padding:18px 20px;
+                margin-bottom:15px;
+                border-radius:8px;
+                box-shadow:0 5px 15px rgba(0,0,0,0.06);
+            ">
+            {% endif %}
+
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+
+                    <span style="font-size:22px;">
+                        🔔
+                    </span>
+
+                    <strong style="color:#071a2b; font-size:16px;">
+                        {{ notification.title }}
+                    </strong>
+
+                    {% if not notification.is_read %}
+                    <span style="
+                        background:#00a8ff;
+                        color:white;
+                        padding:3px 8px;
+                        border-radius:12px;
+                        font-size:11px;
+                    ">
+                        NEW
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <p style="color:#555; font-size:14px; margin-bottom:8px;">
+                    {{ notification.message }}
+                </p>
+
+                <small style="color:#888;">
+                    {{ notification.created_at }}
+                </small>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div style="
+                background:white;
+                padding:25px;
+                border-radius:10px;
+                text-align:center;
+                color:#888;
+                box-shadow:0 5px 15px rgba(0,0,0,0.06);
+            ">
+                You currently have no notifications.
+            </div>
+
+        {% endif %}
+
+        <div class="section-title">
+            <h2>My Borrowed Books</h2>
+        </div>
+
+                <div class="table-scroll">
+            <table id="borrowedTable" style="min-width:650px;">
+                <tr>
+                    <th>Book Title</th>
+                    <th>Borrowed On</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+
+                <tbody id="borrowedTableBody">
+
+                    {% if borrowed_books %}
+
+                        {% for loan in borrowed_books %}
+
+                        <tr id="loan-row-{{ loan.loan_id }}">
+
+                            <td>{{ loan.title }}</td>
+
+                            <td>{{ loan.loan_date }}</td>
+
+                            <td>{{ loan.due_date }}</td>
+
+                            <td class="{{ 'status-ok' if loan.status == 'Returned' else 'status-due' }}">
+                                {{ loan.status }}
+
+                                {% if loan.reminder %}
+                                <div style="margin-top:6px; color:#d97706; font-size:12px; font-weight:normal;">
+                                    {{ loan.reminder }}
+                                </div>
+                                {% endif %}
+                            </td>
+
+                            <td>
+
+    {% if loan.status != 'Returned' %}
+
+    <button
+        class="borrow-btn return-book-btn"
+        data-loan-id="{{ loan.loan_id }}"
+        style="padding:6px 14px; width:auto; font-size:13px;">
+        Return
+    </button>
+
+    {% else %}
+
+    <button
+    type="button"
+    class="borrow-btn review-book-btn"
+    data-book-id="{{ loan.book_id }}"
+    data-book-title="{{ loan.title }}"
+    style="padding:6px 14px; width:auto; font-size:13px; margin-top:5px;">
+    Rate & Review
+</button>
+
+    {% endif %}
+
+</td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#888; padding:25px;">
+                                You haven't borrowed any books yet.
+                                Head to
+                                <a href="/search" style="color:#00a8ff;">
+                                    Search Books
+                                </a>
+                                to get started.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- MY RESERVATIONS -->
+
+        <div class="section-title">
+            <h2>My Reservations</h2>
+        </div>
+
+        <div class="table-scroll">
+            <table style="min-width:750px;">
+
+                <tr>
+                    <th>Book Title</th>
+                    <th>Reserved On</th>
+                    <th>Queue Position</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                </tr>
+
+                <tbody>
+
+                    {% if reservations %}
+
+                        {% for reservation in reservations %}
+
+                        <tr>
+
+                            <td>
+                                {{ reservation.title }}
+                            </td>
+
+                            <td>
+                                {{ reservation.reservation_date }}
+                            </td>
+
+                            <td>
+                                Queue {{ reservation.queue_position }}
+                            </td>
+
+                            <td>
+
+                                {% if reservation.status == 'Ready' %}
+
+                                    <span class="status-ok">
+                                        Ready
+                                    </span>
+
+                                    <div style="margin-top:6px; color:#15803d; font-size:12px; font-weight:normal;">
+                                        Your reserved copy is ready for collection.
+                                    </div>
+
+                                {% elif reservation.status == 'Cancelled' or reservation.status == 'Expired' %}
+
+                                    <span class="status-due">
+                                        {{ reservation.status }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span style="color:#e17055; font-weight:bold;">
+                                        {{ reservation.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ reservation.expires_at }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#888; padding:25px;">
+                                You currently have no reservations.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MY FINES -->
+
+<div class="section-title">
+    <h2>My Fines</h2>
+</div>
+
+<div style="
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+">
+
+    <div style="
+        background:white;
+        padding:20px;
+        border-radius:10px;
+        min-width:180px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.06);
+    ">
+        <div style="
+            color:#777;
+            font-size:13px;
+            margin-bottom:6px;
+        ">
+            Total Fines
+        </div>
+
+        <strong style="
+            color:#071a2b;
+            font-size:22px;
+        ">
+            R{{ "%.2f"|format(total_fines) }}
+        </strong>
+    </div>
+
+
+    <div style="
+        background:white;
+        padding:20px;
+        border-radius:10px;
+        min-width:180px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.06);
+    ">
+        <div style="
+            color:#777;
+            font-size:13px;
+            margin-bottom:6px;
+        ">
+            Total Paid
+        </div>
+
+        <strong style="
+            color:#218838;
+            font-size:22px;
+        ">
+            R{{ "%.2f"|format(total_paid) }}
+        </strong>
+    </div>
+
+
+    <div style="
+        background:white;
+        padding:20px;
+        border-radius:10px;
+        min-width:180px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.06);
+    ">
+        <div style="
+            color:#777;
+            font-size:13px;
+            margin-bottom:6px;
+        ">
+            Outstanding
+        </div>
+
+        <strong style="
+            color:#d63031;
+            font-size:22px;
+        ">
+            R{{ "%.2f"|format(outstanding_fine) }}
+        </strong>
+    </div>
+
+</div>
+
+
+{% if outstanding_fine > 0 %}
+
+<div style="
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.06);
+">
+
+    <p style="
+        color:#555;
+        font-size:14px;
+        margin-bottom:15px;
+    ">
+        You have an outstanding library fine of
+        <strong>
+            R{{ "%.2f"|format(outstanding_fine) }}
+        </strong>.
+    </p>
+
+    <button
+    type="button"
+    class="borrow-btn"
+    onclick="openPaymentModal()"
+    style="
+        padding:10px 20px;
+        width:auto;
+        font-size:14px;
+    "
+>
+    💳 Pay Fine
+</button>
+
+</div>
+
+{% else %}
+
+<div style="
+    background:#eaf8ee;
+    padding:18px 20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    color:#218838;
+    box-shadow:0 5px 15px rgba(0,0,0,0.04);
+">
+    ✅ You have no outstanding fines.
+</div>
+
+{% endif %}
+
+
+<div class="table-scroll">
+
+    <table style="min-width:650px;">
+
+        <tr>
+            <th>Book Title</th>
+            <th>Due Date</th>
+            <th>Returned On</th>
+            <th>Fine</th>
+        </tr>
+
+        <tbody>
+
+            {% if fines %}
+
+                {% for fine in fines %}
+
+                <tr>
+
+                    <td>
+                        {{ fine.title }}
+                    </td>
+
+                    <td>
+                        {{ fine.due_date }}
+                    </td>
+
+                    <td>
+                        {{ fine.returned_date }}
+                    </td>
+
+                    <td style="
+                        color:#d63031;
+                        font-weight:bold;
+                    ">
+                        {{ fine.fine_amount }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        style="
+                            text-align:center;
+                            color:#888;
+                            padding:25px;
+                        "
+                    >
+                        You currently have no fines.
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+    </div>
+
+    <script>
+        document.querySelectorAll('.return-book-btn').forEach(button => {
+            button.addEventListener('click', () => returnBook(button.dataset.loanId));
+        });
+
+        function returnBook(loanId) {
+
+            fetch('/return', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loan_id: loanId })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
+                    alert(result.data.error || "Something went wrong.");
+                    return;
+                }
+                alert(result.data.message || "Book returned successfully.");
+                window.location.reload();
+            })
+            .catch(() => {
+                alert("Could not reach the server. Is Flask running?");
+            });
+        }
+    </script>
+      <!-- RATE AND REVIEW POPUP -->
+
+<div id="reviewModal" style="
+    display:none;
+    position:fixed;
+    z-index:1000;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.55);
+    align-items:center;
+    justify-content:center;
+">
+
+    <div style="
+        background:white;
+        width:90%;
+        max-width:500px;
+        padding:30px;
+        border-radius:12px;
+        box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    ">
+
+        <h2 style="color:#071a2b; margin-bottom:10px;">
+            Rate & Review
+        </h2>
+
+        <p id="reviewBookTitle" style="
+            color:#666;
+            margin-bottom:20px;
+            font-size:14px;
+        "></p>
+
+<div id="reviewSummary" style="
+    margin-bottom:20px;
+    padding:15px;
+    background:#f4f6f8;
+    border-radius:8px;
+">
+    <strong style="color:#071a2b;">
+        Rating: <span id="averageRating">No ratings yet</span>
+    </strong>
+
+    <div id="reviewCount" style="
+        color:#777;
+        font-size:13px;
+        margin-top:4px;
+    ">
+        0 reviews
+    </div>
+</div>
+
+<div id="existingReviews" style="
+    margin-bottom:25px;
+    max-height:220px;
+    overflow-y:auto;
+">
+</div>
+
+        <label style="
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+            color:#071a2b;
+        ">
+            Rating
+        </label>
+
+        <select id="reviewRating" style="
+            width:100%;
+            padding:10px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            margin-bottom:18px;
+        ">
+            <option value="5">5 - Excellent</option>
+            <option value="4">4 - Very Good</option>
+            <option value="3">3 - Good</option>
+            <option value="2">2 - Fair</option>
+            <option value="1">1 - Poor</option>
+        </select>
+
+        <label style="
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+            color:#071a2b;
+        ">
+            Review
+        </label>
+
+        <textarea
+            id="reviewText"
+            rows="5"
+            placeholder="Write your review (optional)..."
+            style="
+                width:100%;
+                padding:10px;
+                border:1px solid #ddd;
+                border-radius:6px;
+                resize:vertical;
+                margin-bottom:20px;
+            "
+        ></textarea>
+
+        <div style="
+            display:flex;
+            gap:10px;
+            justify-content:flex-end;
+        ">
+
+            <button
+                type="button"
+                onclick="closeReviewModal()"
+                style="
+                    padding:10px 18px;
+                    border:1px solid #ddd;
+                    background:white;
+                    border-radius:6px;
+                    cursor:pointer;
+                ">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                onclick="submitReview()"
+                style="
+                    padding:10px 18px;
+                    border:none;
+                    background:#00a8ff;
+                    color:white;
+                    border-radius:6px;
+                    cursor:pointer;
+                ">
+                Submit Review
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+
+<div
+    id="paymentModal"
+    style="
+        display:none;
+        position:fixed;
+        z-index:2000;
+        left:0;
+        top:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.60);
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    "
+>
+
+    <div
+        style="
+            background:white;
+            width:100%;
+            max-width:480px;
+            border-radius:14px;
+            box-shadow:0 15px 40px rgba(0,0,0,0.25);
+            overflow:hidden;
+        "
+    >
+
+        <!-- PAYMENT HEADER -->
+
+        <div
+            style="
+                background:#071a2b;
+                color:white;
+                padding:22px 25px;
+            "
+        >
+
+            <h2 style="
+                margin:0;
+                font-size:22px;
+            ">
+                Pay Library Fine
+            </h2>
+
+            <p style="
+                margin-top:6px;
+                color:#cbd5e1;
+                font-size:13px;
+            ">
+                Secure payment
+            </p>
+
+        </div>
+
+
+        <!-- PAYMENT FORM -->
+
+        <div style="
+            padding:25px;
+        ">
+
+            <div style="
+                background:#f4f6f8;
+                padding:14px 16px;
+                border-radius:8px;
+                margin-bottom:22px;
+            ">
+
+                <div style="
+                    color:#666;
+                    font-size:13px;
+                ">
+                    Amount to Pay
+                </div>
+
+                <strong
+                    id="paymentAmount"
+                    style="
+                        display:block;
+                        color:#071a2b;
+                        font-size:24px;
+                        margin-top:4px;
+                    "
+                >
+                    R{{ "%.2f"|format(outstanding_fine) }}
+                </strong>
+
+            </div>
+
+
+            <!-- NAME ON CARD -->
+
+            <label
+                for="cardName"
+                style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:bold;
+                    color:#333;
+                    margin-bottom:6px;
+                "
+            >
+                Name on Card
+            </label>
+
+            <input
+                type="text"
+                id="cardName"
+                placeholder="Name on card"
+                style="
+                    width:100%;
+                    padding:12px;
+                    border:1px solid #d9dfe5;
+                    border-radius:7px;
+                    margin-bottom:18px;
+                    font-size:14px;
+                "
+            >
+
+
+            <!-- CARD NUMBER -->
+
+            <label
+                for="cardNumber"
+                style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:bold;
+                    color:#333;
+                    margin-bottom:6px;
+                "
+            >
+                Card Number
+            </label>
+
+            <input
+                type="text"
+                id="cardNumber"
+                inputmode="numeric"
+                maxlength="19"
+                placeholder="Card number"
+                style="
+                    width:100%;
+                    padding:12px;
+                    border:1px solid #d9dfe5;
+                    border-radius:7px;
+                    margin-bottom:18px;
+                    font-size:14px;
+                "
+            >
+
+
+            <!-- EXPIRY + CVV -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr 1fr;
+                gap:12px;
+                margin-bottom:18px;
+            ">
+
+                <div>
+
+                    <label
+                        for="expiryMonth"
+                        style="
+                            display:block;
+                            font-size:13px;
+                            font-weight:bold;
+                            color:#333;
+                            margin-bottom:6px;
+                        "
+                    >
+                        Expiry Date
+                    </label>
+
+                    <select
+                        id="expiryMonth"
+                        style="
+                            width:100%;
+                            padding:12px;
+                            border:1px solid #d9dfe5;
+                            border-radius:7px;
+                            font-size:14px;
+                        "
+                    >
+
+                        <option value="">
+                            Month
+                        </option>
+
+                        <option value="01">01</option>
+                        <option value="02">02</option>
+                        <option value="03">03</option>
+                        <option value="04">04</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="expiryYear"
+                        style="
+                            display:block;
+                            font-size:13px;
+                            font-weight:bold;
+                            color:#333;
+                            margin-bottom:6px;
+                        "
+                    >
+                        &nbsp;
+                    </label>
+
+                    <select
+                        id="expiryYear"
+                        style="
+                            width:100%;
+                            padding:12px;
+                            border:1px solid #d9dfe5;
+                            border-radius:7px;
+                            font-size:14px;
+                        "
+                    >
+
+                        <option value="">
+                            Year
+                        </option>
+
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="cardCvv"
+                        style="
+                            display:block;
+                            font-size:13px;
+                            font-weight:bold;
+                            color:#333;
+                            margin-bottom:6px;
+                        "
+                    >
+                        CVV
+                    </label>
+
+                    <input
+                        type="password"
+                        id="cardCvv"
+                        inputmode="numeric"
+                        maxlength="4"
+                        placeholder="CVV"
+                        style="
+                            width:100%;
+                            padding:12px;
+                            border:1px solid #d9dfe5;
+                            border-radius:7px;
+                            font-size:14px;
+                        "
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- PAYMENT TYPE -->
+
+            <label
+                for="paymentType"
+                style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:bold;
+                    color:#333;
+                    margin-bottom:6px;
+                "
+            >
+                Straight/Budget
+            </label>
+
+            <select
+                id="paymentType"
+                style="
+                    width:100%;
+                    padding:12px;
+                    border:1px solid #d9dfe5;
+                    border-radius:7px;
+                    margin-bottom:16px;
+                    font-size:14px;
+                "
+            >
+                <option value="Straight">
+                    Straight
+                </option>
+
+                <option value="Budget">
+                    Budget
+                </option>
+            </select>
+
+
+            <!-- CARD NOTE -->
+
+            <div style="
+                color:#666;
+                font-size:12px;
+                margin-bottom:20px;
+            ">
+                South African issued cards only
+            </div>
+
+
+            <!-- CHANGE PAYMENT METHOD -->
+
+            <button
+                type="button"
+                onclick="closePaymentModal()"
+                style="
+                    width:100%;
+                    padding:10px;
+                    border:1px solid #d9dfe5;
+                    background:white;
+                    color:#071a2b;
+                    border-radius:7px;
+                    cursor:pointer;
+                    margin-bottom:12px;
+                    font-size:14px;
+                "
+            >
+                Change Payment Method
+            </button>
+
+
+            <!-- PAYMENT BUTTON -->
+
+            <button
+                type="button"
+                onclick="processFinePayment()"
+                style="
+                    width:100%;
+                    padding:13px;
+                    border:none;
+                    background:#00a8ff;
+                    color:white;
+                    border-radius:7px;
+                    cursor:pointer;
+                    font-size:15px;
+                    font-weight:bold;
+                "
+            >
+                Pay R{{ "%.2f"|format(outstanding_fine) }}
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function openPaymentModal() {
+
+    document.getElementById('paymentModal').style.display = 'flex';
+
+}
+
+
+function closePaymentModal() {
+
+    document.getElementById('paymentModal').style.display = 'none';
+
+}
+
+
+function processFinePayment() {
+
+    const cardName =
+        document.getElementById('cardName').value.trim();
+
+    const cardNumber =
+        document.getElementById('cardNumber').value.replace(/\s/g, '');
+
+    const expiryMonth =
+        document.getElementById('expiryMonth').value;
+
+    const expiryYear =
+        document.getElementById('expiryYear').value;
+
+    const cvv =
+        document.getElementById('cardCvv').value.trim();
+
+
+    if (!cardName) {
+
+        alert("Name on card is required.");
+
+        return;
+    }
+
+
+    if (!/^\d{13,19}$/.test(cardNumber)) {
+
+        alert("Please enter a valid card number.");
+
+        return;
+    }
+
+
+    if (!expiryMonth) {
+
+        alert("Please select the expiry month.");
+
+        return;
+    }
+
+
+    if (!expiryYear) {
+
+        alert("Please select the expiry year.");
+
+        return;
+    }
+
+
+    if (!/^\d{3,4}$/.test(cvv)) {
+
+        alert("Please enter a valid CVV.");
+
+        return;
+    }
+
+
+    const confirmed = confirm(
+        "Confirm payment of R" +
+        document.getElementById('paymentAmount').textContent.replace("R", "") +
+        "?"
+    );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    fetch('/api/pay-fine', {
+
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json'
+        }
+
+    })
+
+    .then(function(response) {
+
+        return response.json().then(function(data) {
+
+            return {
+                status: response.status,
+                data: data
+            };
+
+        });
+
+    })
+
+    .then(function(result) {
+
+        if (result.status !== 200) {
+
+            alert(
+                result.data.error ||
+                "Could not process the payment."
+            );
+
+            return;
+        }
+
+
+        alert(
+            result.data.message ||
+            "Payment successful."
+        );
+
+
+        closePaymentModal();
+
+        window.location.reload();
+
+    })
+
+    .catch(function(error) {
+
+        console.error("Payment error:", error);
+
+        alert(
+            "Could not reach the server. Is Flask running?"
+        );
+
+    });
+}
+</script>
+
+<script>
+let selectedReviewBookId = null;
+
+async function payFine() {
+
+    const confirmed = confirm(
+        "Are you sure you want to pay your total outstanding fine?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch('/api/pay-fine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                "Could not process the fine payment."
+            );
+
+            return;
+        }
+
+        alert(
+            data.message ||
+            "Fine payment successful."
+        );
+
+        window.location.reload();
+
+    } catch (error) {
+
+        console.error("Fine payment error:", error);
+
+        alert(
+            "Could not reach the server. Is Flask running?"
+        );
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const reviewButtons = document.querySelectorAll('.review-book-btn');
+
+    console.log("Review buttons found:", reviewButtons.length);
+
+    reviewButtons.forEach(function (button) {
+
+        button.addEventListener('click', function () {
+
+            const bookId = this.getAttribute('data-book-id');
+            const bookTitle = this.getAttribute('data-book-title');
+
+            openReviewModal(bookId, bookTitle);
+
+        });
+
+    });
+
+});
+
+
+
+function openReviewModal(bookId, bookTitle) {
+
+    selectedReviewBookId = bookId;
+
+    document.getElementById('reviewBookTitle').textContent =
+        "Book: " + bookTitle;
+
+    document.getElementById('reviewRating').value = "5";
+    document.getElementById('reviewText').value = "";
+
+    document.getElementById('averageRating').textContent = "Loading...";
+    document.getElementById('reviewCount').textContent = "";
+    document.getElementById('existingReviews').innerHTML =
+        "<p style='color:#777;'>Loading reviews...</p>";
+
+    document.getElementById('reviewModal').style.display = 'flex';
+
+    loadReviews(bookId);
+}
+
+
+function loadReviews(bookId) {
+
+    fetch('/api/reviews/' + bookId)
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error("Could not load reviews.");
+            }
+
+            return response.json();
+        })
+        .then(function (data) {
+
+            console.log("Reviews loaded:", data);
+
+            const averageRating =
+                document.getElementById('averageRating');
+
+            const reviewCount =
+                document.getElementById('reviewCount');
+
+            const existingReviews =
+                document.getElementById('existingReviews');
+
+            if (data.review_count === 0) {
+
+                averageRating.textContent = "No ratings yet";
+
+                reviewCount.textContent =
+                    "No reviews yet";
+
+                existingReviews.innerHTML = "";
+
+                return;
+            }
+
+            averageRating.textContent =
+                data.average_rating + " / 5";
+
+            reviewCount.textContent =
+                data.review_count +
+                (data.review_count === 1 ? " review" : " reviews");
+
+            existingReviews.innerHTML = "";
+
+            data.reviews.forEach(function (review) {
+
+                let stars = "";
+
+                for (let i = 1; i <= 5; i++) {
+                    stars += i <= review.rating ? "★" : "☆";
+                }
+
+                const reviewElement = document.createElement('div');
+
+                reviewElement.style.background = "#fff";
+                reviewElement.style.padding = "15px";
+                reviewElement.style.marginBottom = "10px";
+                reviewElement.style.borderRadius = "8px";
+                reviewElement.style.border = "1px solid #eee";
+
+                reviewElement.innerHTML = `
+                    <strong style="
+                        color:#071a2b;
+                        display:block;
+                        margin-bottom:5px;
+                    ">
+                        ${review.reviewer}
+                    </strong>
+
+                    <div style="
+                        color:#f5a623;
+                        font-size:18px;
+                        margin-bottom:5px;
+                    ">
+                        ${stars}
+                    </div>
+
+                    ${
+                        review.review_text
+                        ? `
+                            <p style="
+                                color:#555;
+                                font-size:14px;
+                                margin-bottom:5px;
+                            ">
+                                ${review.review_text}
+                            </p>
+                          `
+                        : `
+                            <p style="
+                                color:#999;
+                                font-size:13px;
+                                font-style:italic;
+                            ">
+                                No written review.
+                            </p>
+                          `
+                    }
+
+                    <small style="
+                        color:#999;
+                        font-size:12px;
+                    ">
+                        ${review.created_at}
+                    </small>
+                `;
+
+                existingReviews.appendChild(reviewElement);
+
+            });
+
+        })
+        .catch(function (error) {
+
+            console.error("Review loading error:", error);
+
+            document.getElementById('averageRating').textContent =
+                "Unavailable";
+
+            document.getElementById('reviewCount').textContent =
+                "";
+
+            document.getElementById('existingReviews').innerHTML = `
+                <div style="
+                    background:#fff;
+                    padding:15px;
+                    border-radius:8px;
+                    text-align:center;
+                    color:#d63031;
+                ">
+                    Could not load the reviews.
+                </div>
+            `;
+        });
+}
+
+
+function closeReviewModal() {
+
+    document.getElementById('reviewModal').style.display = 'none';
+
+    selectedReviewBookId = null;
+}
+
+
+function submitReview() {
+
+    if (!selectedReviewBookId) {
+        alert("No book selected.");
+        return;
+    }
+
+    const rating =
+        document.getElementById('reviewRating').value;
+
+    const reviewText =
+        document.getElementById('reviewText').value.trim();
+
+    fetch('/api/reviews', {
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+            book_id: selectedReviewBookId,
+            rating: rating,
+            review_text: reviewText
+        })
+    })
+
+    .then(function (response) {
+
+        return response.json().then(function (data) {
+
+            return {
+                status: response.status,
+                data: data
+            };
+
+        });
+
+    })
+
+    .then(function (result) {
+
+        if (result.status !== 200) {
+
+            alert(
+                result.data.error ||
+                "Could not submit review."
+            );
+
+            return;
+        }
+
+        alert(
+            result.data.message ||
+            "Review submitted successfully."
+        );
+
+        closeReviewModal();
+
+        window.location.reload();
+
+    })
+
+    .catch(function (error) {
+
+        console.error("Review submission error:", error);
+
+        alert(
+            "Could not reach the server. Is Flask running?"
+        );
+
+    });
+}
+</script>
+
+</body>
+</html>

@@ -53,6 +53,8 @@ CREATE TABLE member (
     joined_date DATE NOT NULL DEFAULT CURRENT_DATE,
     active_status_id INTEGER NOT NULL REFERENCES member_status(id) ON DELETE RESTRICT,
     email VARCHAR(255) UNIQUE,
+    department VARCHAR(255),
+    programme VARCHAR(255),
     password_hash VARCHAR(255),
     role VARCHAR(20) NOT NULL DEFAULT 'student'
         CHECK (role IN ('student', 'staff', 'admin')),

@@ -221,6 +221,88 @@
             .nav-links { display: none; }
         }
 
+    
+        .fine-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .fine-card {
+            border: 1px solid #e3e8ee;
+            border-radius: 8px;
+            padding: 18px;
+            background: #f9fbfd;
+        }
+
+        .fine-card h3 {
+            font-size: 13px;
+            color: #667085;
+            margin-bottom: 7px;
+        }
+
+        .fine-card .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #071a2b;
+        }
+
+        .fine-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .fine-badge.overdue {
+            background: #fff4db;
+            color: #9a6700;
+        }
+
+        .fine-badge.lost,
+        .fine-badge.damaged {
+            background: #ffe7e7;
+            color: #b42318;
+        }
+
+        .fine-badge.paid {
+            background: #e8f7ee;
+            color: #18794e;
+        }
+
+        .fine-note {
+            margin-top: 12px;
+            padding: 12px;
+            background: #eef8ff;
+            border-left: 4px solid #00a8ff;
+            color: #344054;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        .fine-action {
+            border: none;
+            border-radius: 5px;
+            padding: 7px 10px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .fine-action.lost,
+        .fine-action.damaged {
+            background: #fff0f0;
+            color: #b42318;
+        }
+
+        @media(max-width: 800px) {
+            .fine-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -339,8 +421,9 @@
                     <tr>
                         <td>{{ person.name }}</td>
                         <td>{{ person.email }}</td>
-                        <td><span class="role-badge {{ person.role }}">{{ person.role.capitalize() }}</span></td>
+                        <td><span class="role-badge {{ person.role }}">{{ person.role.capitalize() }}</span>{% if person.pending %} <span style="color:#b7791f; font-size:12px;">Pending approval</span>{% endif %}</td>
                         <td>
+                            {% if person.pending %}<span class="action-link" onclick="approveStaff({{ person.id }}, this)">Approve</span>{% endif %}
                             <span class="action-link">Edit</span>
                             <span class="action-link delete">Remove</span>
                         </td>
@@ -350,6 +433,55 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
+        </div>
+
+
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Fine Management</h2>
+            </div>
+
+            <div class="fine-summary">
+                <div class="fine-card">
+                    <h3>Overdue Rate</h3>
+                    <div class="amount">R25.00 / day</div>
+                </div>
+                <div class="fine-card">
+                    <h3>Lost / Damaged</h3>
+                    <div class="amount">Market Value</div>
+                </div>
+                <div class="fine-card">
+                    <h3>Fine Policy</h3>
+                    <div class="amount">Semi-Automated</div>
+                </div>
+            </div>
+
+            <div class="fine-note">
+                Overdue fines increase automatically by R25 per day after the due date.
+                If a book is confirmed lost or significantly damaged, the normal overdue
+                fine stops and the student is charged the book's recorded market/replacement value.
+            </div>
+
+            <div class="table-scroll">
+                <table style="margin-top:20px; min-width:850px;">
+                    <tr>
+                        <th>Student</th>
+                        <th>Book</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Current Fine</th>
+                        <th>Market Value</th>
+                        <th>Action</th>
+                    </tr>
+                    <tbody id="fineManagementBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center; color:#888;">
+                                Fine information will appear here when loans are available.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -370,7 +502,7 @@
                 <tr>
                     <td>New Student Sign-ups</td>
                     <td>This month</td>
-                    <td>24 new students</td>
+                    <td>{{ stats.new_students }} new students</td>
                 </tr>
                 <tr>
                     <td>Overdue Books</td>
@@ -449,6 +581,24 @@
             });
         }
 
+        function approveStaff(id, el) {
+            fetch('/api/staff/' + id + '/approve', { method: 'POST' })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
+                    alert(result.data.error || "Something went wrong.");
+                    return;
+                }
+                let row = el.closest('tr');
+                let pendingLabel = row.querySelector('td:nth-child(3) span:nth-child(2)');
+                if (pendingLabel) pendingLabel.remove();
+                el.remove();
+            })
+            .catch(() => {
+                alert("Could not reach the server. Is Flask running?");
+            });
+        }
+
         function addStaff() {
 
             let nameParts = document.getElementById('staffName').value.trim().split(" ");
@@ -500,5 +650,142 @@
 
     </script>
 
-</body>
+
+        async function loadFineManagement() {
+            const body = document.getElementById('fineManagementBody');
+            if (!body) return;
+
+            try {
+                const response = await fetch('/api/staff/loans');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Could not load loan information.');
+                }
+
+                const loans = data.loans || data || [];
+
+                if (!loans.length) {
+                    body.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align:center; color:#888;">
+                                There are currently no active loans.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                body.innerHTML = loans.map(loan => {
+                    const status = String(loan.status || loan.loan_status || 'BORROWED').toUpperCase();
+                    const fine = Number(loan.current_fine || loan.fine_amount || 0);
+                    const market = Number(loan.market_value || 0);
+
+                    const student =
+                        loan.student ||
+                        loan.student_name ||
+                        loan.member_name ||
+                        'Unknown';
+
+                    const title = loan.title || 'Unknown book';
+                    const dueDate = loan.due_date || '-';
+
+                    let actions = '<span style="color:#888;">No action</span>';
+
+                    if (status !== 'RETURNED' && status !== 'LOST' && status !== 'DAMAGED') {
+                        actions = `
+                            <button class="fine-action lost"
+                                    onclick="markFineBook(${loan.loan_id || loan.id}, 'lost')">
+                                Mark Lost
+                            </button>
+                            <button class="fine-action damaged"
+                                    onclick="markFineBook(${loan.loan_id || loan.id}, 'damaged')">
+                                Mark Damaged
+                            </button>`;
+                    }
+
+                    const badgeClass =
+                        status === 'LOST' ? 'lost' :
+                        status === 'DAMAGED' ? 'damaged' :
+                        status === 'RETURNED' ? 'paid' : 'overdue';
+
+                    return `
+                        <tr>
+                            <td>${escapeHtml(student)}</td>
+                            <td>${escapeHtml(title)}</td>
+                            <td>${escapeHtml(dueDate)}</td>
+                            <td>
+                                <span class="fine-badge ${badgeClass}">
+                                    ${escapeHtml(status)}
+                                </span>
+                            </td>
+                            <td>R${fine.toFixed(2)}</td>
+                            <td>R${market.toFixed(2)}</td>
+                            <td>${actions}</td>
+                        </tr>`;
+                }).join('');
+
+            } catch (error) {
+                console.error('FINE MANAGEMENT:', error);
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#b42318;">
+                            Could not load fine information.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        async function markFineBook(loanId, action) {
+            const actionName = action === 'lost' ? 'lost' : 'significantly damaged';
+            const confirmed = confirm(
+                `Are you sure this book should be marked ${actionName}? ` +
+                `The normal overdue fine will stop and the book's market value will be charged.`
+            );
+
+            if (!confirmed) return;
+
+            const endpoint =
+                action === 'lost'
+                    ? '/staff/mark-lost'
+                    : '/staff/mark-damaged';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        loan_id: loanId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.error || 'Could not update the book.');
+                    return;
+                }
+
+                alert(data.message || `Book marked ${actionName}.`);
+                loadFineManagement();
+
+            } catch (error) {
+                console.error(error);
+                alert('Could not reach the server. Is Flask running?');
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFineManagement);
+
+    </body>
 </html>

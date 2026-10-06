@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Login - University Library</title>
 
     <style>
@@ -23,7 +24,7 @@
             text-decoration: none;
         }
 
-        /* NAV - matches homepage */
+        /* NAV */
 
         nav {
             height: 75px;
@@ -34,6 +35,7 @@
             padding: 0 7%;
             position: sticky;
             top: 0;
+            z-index: 100;
         }
 
         .logo {
@@ -46,22 +48,7 @@
             color: #00a8ff;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: white;
-            font-size: 16px;
-        }
-
-        .nav-links a:hover {
-            color: #00a8ff;
-        }
-
-        /* LOGIN CARD */
+        /* LOGIN */
 
         .login-wrapper {
             min-height: calc(100vh - 75px);
@@ -77,7 +64,7 @@
             max-width: 420px;
             border-radius: 12px;
             padding: 45px 35px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         .login-card h2 {
@@ -92,6 +79,8 @@
             text-align: center;
             margin-bottom: 30px;
         }
+
+        /* ROLE SELECT */
 
         .role-select {
             display: flex;
@@ -111,12 +100,18 @@
             transition: 0.2s;
         }
 
+        .role-option:hover {
+            border-color: #00a8ff;
+        }
+
         .role-option.active {
             border-color: #00a8ff;
             background: #eaf7ff;
             color: #071a2b;
             font-weight: bold;
         }
+
+        /* FORM */
 
         label {
             display: block;
@@ -126,29 +121,31 @@
             margin-top: 18px;
         }
 
-      input[type="email"],
-input[type="password"] {
-    width: 100%;
-    padding: 14px 15px;
-    border: 1px solid #d9e0e6;
-    border-radius: 8px;
-    font-size: 15px;
-    outline: none;
-    background: #fafcfe;
-    color: #222;
-    transition: 0.2s;
-}
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1px solid #d9e0e6;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: #fafcfe;
+            color: #222;
+            transition: 0.2s;
+        }
 
-input[type="email"]:focus,
-input[type="password"]:focus {
-    border-color: #00a8ff;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.10);
-}
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #00a8ff;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.10);
+        }
 
-input[type="email"]::placeholder {
-    color: #9aa7b2;
-}
+        input::placeholder {
+            color: #9aa7b2;
+        }
+
+        /* BUTTON */
 
         .login-btn-submit {
             width: 100%;
@@ -167,6 +164,13 @@ input[type="email"]::placeholder {
             background: #0077b6;
         }
 
+        .login-btn-submit:disabled {
+            background: #8fcfec;
+            cursor: not-allowed;
+        }
+
+        /* LINKS */
+
         .back-home {
             display: block;
             text-align: center;
@@ -175,167 +179,611 @@ input[type="email"]::placeholder {
             font-size: 14px;
         }
 
+        .back-home:hover {
+            text-decoration: underline;
+        }
+
+        /* ERRORS */
+
+        .form-error {
+            display: none;
+            color: #d63031;
+            background: #fff5f5;
+            border: 1px solid #ffd6d6;
+            padding: 9px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .success-message {
+            color: #16803c;
+            background: #eaf8ef;
+            border: 1px solid #b7e4c7;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        /* MOBILE */
+
         @media(max-width: 500px) {
+
             .login-card {
                 padding: 30px 22px;
             }
+
             .login-card h2 {
                 font-size: 24px;
             }
+
             .role-select {
                 flex-direction: column;
             }
+
         }
 
     </style>
 </head>
+
 <body>
-    <nav>
-        <div class="logo">Uni<span>Library</span></div>
-        <ul class="nav-links">
-        </ul>
-    </nav>
 
-    <div class="login-wrapper">
+<nav>
 
-        <div class="login-card">
+    <div class="logo">
+        Uni<span>Library</span>
+    </div>
 
-            <h2>Welcome Back</h2>
-            <p class="subtitle">Log in to continue to UniLibrary</p>
+</nav>
 
-            <form id="loginForm" onsubmit="handleLogin(event)">
 
-                <label>I am a:</label>
-                <div class="role-select" id="roleSelect">
-                    <div class="role-option active" data-role="student" onclick="selectRole(this)">Student</div>
-                    <div class="role-option" data-role="staff" onclick="selectRole(this)">Staff</div>
-                    <div class="role-option" data-role="admin" onclick="selectRole(this)">Admin</div>
+<div class="login-wrapper">
+
+    <div class="login-card">
+
+        <h2>Welcome Back</h2>
+
+        <p class="subtitle">
+            Log in to continue to UniLibrary
+        </p>
+
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+
+            <!-- ROLE -->
+
+            <label>
+                I am a:
+            </label>
+
+            <div class="role-select" id="roleSelect">
+
+                <div
+                    class="role-option active"
+                    data-role="student"
+                    onclick="selectRole(this)"
+                    role="button"
+                    tabindex="0"
+                >
+                    Student
                 </div>
 
-                <label for="username">Email</label>
-                <input type="email" id="username" name="username" placeholder="e.g. 202412345@ufh.ac.za" required>
-                <p id="emailError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;"></p>
-                <p id="accountError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;"></p>
+                <div
+                    class="role-option"
+                    data-role="staff"
+                    onclick="selectRole(this)"
+                    role="button"
+                    tabindex="0"
+                >
+                    Staff
+                </div>
 
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required minlength="6">
-                <p id="passwordError" style="display:none; color:#d63031; font-size:13px; margin-top:6px;">Password must be at least 6 characters.</p>
+                <div
+                    class="role-option"
+                    data-role="admin"
+                    onclick="selectRole(this)"
+                    role="button"
+                    tabindex="0"
+                >
+                    Admin
+                </div>
 
-                <button type="submit" class="login-btn-submit">Log In</button>
+            </div>
 
-            </form>
 
-            <a href="/forgot-password" class="back-home">Forgot your password?</a>
-            <a href="/register" class="back-home">Don't have an account? Sign up</a>
-            <a href="/" class="back-home">← Back to homepage</a>
+            <!-- EMAIL -->
 
-        </div>
+            <label for="username">
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="username"
+                name="username"
+                placeholder="e.g. 202412345@ufh.ac.za"
+                autocomplete="username"
+                required
+            >
+
+            <p
+                id="emailError"
+                class="form-error"
+            ></p>
+
+
+            <p
+                id="accountError"
+                class="form-error"
+            ></p>
+
+
+            <!-- PASSWORD -->
+
+            <label for="password">
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+                minlength="6"
+            >
+
+            <p
+                id="passwordError"
+                class="form-error"
+            ></p>
+
+
+            <!-- LOGIN -->
+
+            <button
+                type="submit"
+                class="login-btn-submit"
+                id="loginButton"
+            >
+                Log In
+            </button>
+
+        </form>
+
+
+        <a href="/forgot-password" class="back-home">
+            Forgot your password?
+        </a>
+
+        <a href="/register" class="back-home">
+            Don't have an account? Sign up
+        </a>
+
+        <a href="/" class="back-home">
+            ← Back to homepage
+        </a>
 
     </div>
 
-    <script>
+</div>
 
-        let currentRole = "student";
 
-        function selectRole(el) {
-            document.querySelectorAll('.role-option').forEach(function(opt) {
-                opt.classList.remove('active');
-            });
-            el.classList.add('active');
-            currentRole = el.getAttribute('data-role');
-        const emailInput = document.getElementById('username');
+<script>
+
+let currentRole = "student";
+
+
+/* =========================================================
+   ROLE SELECTION
+========================================================= */
+
+function selectRole(element) {
+
+    document.querySelectorAll(".role-option").forEach(function(option) {
+
+        option.classList.remove("active");
+
+    });
+
+    element.classList.add("active");
+
+    currentRole = element.getAttribute("data-role");
+
+
+    const emailInput = document.getElementById("username");
+
+
+    if (currentRole === "student") {
+
+        emailInput.placeholder =
+            "e.g. 202412345@ufh.ac.za";
+
+    } else {
+
+        emailInput.placeholder =
+            "e.g. 12345@ufh.ac.za";
+
+    }
+
+
+    /* Clear previous errors */
+
+    clearErrors();
+
+}
+
+
+/* =========================================================
+   CLEAR ERRORS
+========================================================= */
+
+function clearErrors() {
+
+    const emailError =
+        document.getElementById("emailError");
+
+    const passwordError =
+        document.getElementById("passwordError");
+
+    const accountError =
+        document.getElementById("accountError");
+
+
+    emailError.style.display = "none";
+    passwordError.style.display = "none";
+    accountError.style.display = "none";
+
+
+    emailError.textContent = "";
+    passwordError.textContent = "";
+    accountError.textContent = "";
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function handleLogin(event) {
+
+    event.preventDefault();
+
+
+    const email =
+        document.getElementById("username")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const password =
+        document.getElementById("password")
+        .value;
+
+
+    const emailError =
+        document.getElementById("emailError");
+
+
+    const passwordError =
+        document.getElementById("passwordError");
+
+
+    const accountError =
+        document.getElementById("accountError");
+
+
+    const loginButton =
+        document.getElementById("loginButton");
+
+
+    clearErrors();
+
+
+    /* =====================================================
+       EMAIL VALIDATION
+
+       Student:
+       9 digits @ufh.ac.za
+
+       Example:
+       202412345@ufh.ac.za
+
+       Staff/Admin:
+       5 digits @ufh.ac.za
+
+       Example:
+       12345@ufh.ac.za
+    ===================================================== */
+
+
+    const studentPattern =
+        /^\d{9}@ufh\.ac\.za$/;
+
+
+    const staffAdminPattern =
+        /^\d{5}@ufh\.ac\.za$/;
+
+
+    const emailValid =
+        currentRole === "student"
+            ? studentPattern.test(email)
+            : staffAdminPattern.test(email);
+
+
+    if (!emailValid) {
 
         if (currentRole === "student") {
-        emailInput.placeholder = "e.g. 202412345@ufh.ac.za";
-    } else {
-        emailInput.placeholder = "e.g. 20245@ufh.ac.za";
-    }
 
-    }
+            emailError.textContent =
+                "Student email must contain 9 digits followed by @ufh.ac.za. Example: 202412345@ufh.ac.za";
+
+        } else {
+
+            emailError.textContent =
+                "Staff/Admin email must contain 5 digits followed by @ufh.ac.za. Example: 12345@ufh.ac.za";
+
+        }
 
 
+        emailError.style.display = "block";
 
-        function handleLogin(e) {
-            e.preventDefault();
-
-            let email = document.getElementById('username').value.trim().toLowerCase();
-            let password = document.getElementById('password').value;
-            let emailError = document.getElementById('emailError');
-            let passwordError = document.getElementById('passwordError');
-            let accountError = document.getElementById('accountError');
-
-            emailError.style.display = "none";
-            passwordError.style.display = "none";
-            accountError.style.display = "none";
-
-            let studentPattern = /^\d{9}@ufh\.ac\.za$/;
-            let staffAdminPattern = /^\d{5}@ufh\.ac\.za$/;
-
-            let emailValid = (currentRole === "student") ? studentPattern.test(email) : staffAdminPattern.test(email);
-
-            if (!emailValid) {
-                emailError.textContent = (currentRole === "student")
-                    ? "Student email must be 9 digits followed by @ufh.ac.za (e.g. 202412345@ufh.ac.za)."
-                    : "Staff/Admin email must be 5 digits followed by @ufh.ac.za (e.g. 12345@ufh.ac.za).";
-                emailError.style.display = "block";
-                return;
-            }
-
-            if (password.length < 6) {
-                passwordError.textContent = "Password must be at least 6 characters.";
-                passwordError.style.display = "block";
-                return;
-            }
-
-            // Real backend: checks the PostgreSQL 'member' table
-            // (now supports all three roles via the 'role' column)
-            fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, password: password, role: currentRole })
-            })
-            .then(res => res.json().then(data => ({ status: res.status, data: data })))
-            .then(result => {
-                if (result.status !== 200) {
-
-                    if (result.status === 403) {
-        accountError.textContent = result.data.error;
-        accountError.style.display = "block";
         return;
     }
 
-                    if (result.data.error.toLowerCase().includes("password")) {
-                        passwordError.textContent = result.data.error;
-                        passwordError.style.display = "block";
-                    } else {
-                        emailError.textContent = result.data.error;
-                        emailError.style.display = "block";
-                    }
-                    return;
-                }
-               const successMessage = document.createElement("p");
-successMessage.textContent = "Login successful. Welcome to UniLibrary!";
-successMessage.style.color = "#16803c";
-successMessage.style.background = "#eaf8ef";
-successMessage.style.border = "1px solid #b7e4c7";
-successMessage.style.padding = "10px";
-successMessage.style.borderRadius = "6px";
-successMessage.style.textAlign = "center";
-successMessage.style.marginTop = "15px";
 
-document.getElementById("loginForm").appendChild(successMessage);
+    /* =====================================================
+       PASSWORD VALIDATION
+    ===================================================== */
 
-setTimeout(() => {
-    window.location.href = result.data.redirect;
-}, 1000);
+    if (password.length < 6) {
+
+        passwordError.textContent =
+            "Password must be at least 6 characters.";
+
+
+        passwordError.style.display = "block";
+
+        return;
+    }
+
+
+    /* =====================================================
+       DISABLE BUTTON
+    ===================================================== */
+
+    loginButton.disabled = true;
+
+    loginButton.textContent = "Logging in...";
+
+
+    /* =====================================================
+       SEND LOGIN REQUEST TO FLASK
+    ===================================================== */
+
+    try {
+
+        const response = await fetch("/login", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                email: email,
+
+                password: password,
+
+                role: currentRole
+
             })
-            .catch(() => {
-                emailError.textContent = "Could not reach the server. Is Flask running?";
-                emailError.style.display = "block";
-            });
+
+        });
+
+
+        /*
+         * Try to read JSON returned by Flask.
+         */
+
+        let data;
+
+        try {
+
+            data = await response.json();
+
+        } catch (jsonError) {
+
+            data = {
+                error:
+                    "The server returned an invalid response."
+            };
+
         }
 
-    </script>
+
+        /* =================================================
+           LOGIN FAILED
+        ================================================= */
+
+        if (!response.ok) {
+
+            const errorMessage =
+                data.error ||
+                "Login failed. Please check your details and try again.";
+
+
+            /*
+             * Account-related errors
+             */
+
+            if (
+                response.status === 403 ||
+                response.status === 404
+            ) {
+
+                accountError.textContent =
+                    errorMessage;
+
+                accountError.style.display =
+                    "block";
+
+            }
+
+
+            /*
+             * Password-related errors
+             */
+
+            else if (
+                errorMessage
+                    .toLowerCase()
+                    .includes("password")
+            ) {
+
+                passwordError.textContent =
+                    errorMessage;
+
+                passwordError.style.display =
+                    "block";
+
+            }
+
+
+            /*
+             * Other login errors
+             */
+
+            else {
+
+                emailError.textContent =
+                    errorMessage;
+
+                emailError.style.display =
+                    "block";
+
+            }
+
+
+            loginButton.disabled = false;
+
+            loginButton.textContent = "Log In";
+
+            return;
+        }
+
+
+        /* =================================================
+           LOGIN SUCCESSFUL
+        ================================================= */
+
+        const successMessage =
+            document.createElement("p");
+
+
+        successMessage.className =
+            "success-message";
+
+
+        successMessage.textContent =
+            "Login successful. Welcome to UniLibrary!";
+
+
+        document
+            .getElementById("loginForm")
+            .appendChild(successMessage);
+
+
+        /*
+         * Flask should return:
+         *
+         * {
+         *     "redirect": "/dashboard"
+         * }
+         *
+         * or the appropriate dashboard based
+         * on the user's role.
+         */
+
+        if (!data.redirect) {
+
+            throw new Error(
+                "Login succeeded but no redirect was provided by the server."
+            );
+
+        }
+
+
+        setTimeout(function() {
+
+            window.location.href =
+                data.redirect;
+
+        }, 800);
+
+
+    } catch (error) {
+
+        console.error(
+            "Login error:",
+            error
+        );
+
+
+        emailError.textContent =
+            "Could not reach the server. Please make sure Flask is running.";
+
+
+        emailError.style.display =
+            "block";
+
+
+        loginButton.disabled = false;
+
+        loginButton.textContent =
+            "Log In";
+
+    }
+
+}
+
+
+/* =========================================================
+   KEYBOARD ACCESS FOR ROLE BUTTONS
+========================================================= */
+
+document
+    .querySelectorAll(".role-option")
+    .forEach(function(option) {
+
+        option.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+                    selectRole(option);
+
+                }
+
+            }
+        );
+
+    });
+
+</script>
 
 </body>
 </html>

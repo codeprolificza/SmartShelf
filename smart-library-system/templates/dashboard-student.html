@@ -247,7 +247,28 @@
         </div>
         </div>
 
-                <!-- MY NOTIFICATIONS -->
+                <!-- FORMAL LOAN & FINE POLICY NOTICE -->
+        <div style="
+            background:white;
+            border-left:5px solid #071a2b;
+            padding:20px;
+            margin-bottom:25px;
+            border-radius:8px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.06);
+        ">
+            <h2 style="color:#071a2b;font-size:19px;margin-bottom:10px;">Library Loan and Fine Policy</h2>
+            <p style="color:#555;font-size:14px;line-height:1.7;margin-bottom:8px;">
+                When a library book is borrowed, the borrower is responsible for returning it on or before the stated due date. A notification will be issued one day before the due date as a formal reminder.
+            </p>
+            <ul style="color:#555;font-size:14px;line-height:1.8;padding-left:22px;">
+                <li><strong>Overdue return:</strong> A fine of <strong>R25.00 per overdue day</strong> will apply from the day after the due date until the book is returned.</li>
+                <li><strong>Significantly damaged book:</strong> The normal overdue charge will stop and the borrower will be charged the applicable market/replacement value of the book.</li>
+                <li><strong>Lost book:</strong> The normal overdue charge will stop and the borrower will be charged the applicable market/replacement value of the book.</li>
+                <li><strong>Return on time:</strong> No overdue fine will be charged when the book is returned on or before its due date.</li>
+            </ul>
+        </div>
+
+        <!-- MY NOTIFICATIONS -->
 
         <div class="section-title">
             <h2>Notifications</h2>
@@ -508,6 +529,7 @@
 <div class="section-title">
     <h2>My Fines</h2>
 </div>
+<div style="background:white;border-left:5px solid #00a8ff;padding:18px 20px;border-radius:8px;margin-bottom:20px"><strong style="color:#071a2b">Fine Policy</strong><p style="color:#555;font-size:13px;margin-top:7px">Overdue books accrue <strong>R25.00 per overdue day</strong> automatically. Lost or significantly damaged books stop overdue charging and use the market/replacement value instead.</p></div>
 
 <div style="
     display:flex;
@@ -650,6 +672,8 @@
             <th>Book Title</th>
             <th>Due Date</th>
             <th>Returned On</th>
+            <th>Fine Type</th>
+            <th>Status</th>
             <th>Fine</th>
         </tr>
 
@@ -673,12 +697,7 @@
                         {{ fine.returned_date }}
                     </td>
 
-                    <td style="
-                        color:#d63031;
-                        font-weight:bold;
-                    ">
-                        {{ fine.fine_amount }}
-                    </td>
+                    <td>{% if fine.fine_type == 'LOST' %}Lost / Replacement{% elif fine.fine_type == 'DAMAGED' %}Damaged / Replacement{% else %}Overdue{% endif %}</td><td>{{ fine.status }}</td><td style="color:#d63031;font-weight:bold">{{ fine.fine_amount }}</td>
 
                 </tr>
 

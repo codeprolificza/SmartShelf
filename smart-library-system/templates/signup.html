@@ -107,11 +107,47 @@
             border-color: #00a8ff;
         }
 
+        .role-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .role-option {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            color: #555;
+            font-family: inherit;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .role-option:focus-visible {
+            outline: 2px solid #00a8ff;
+            outline-offset: 2px;
+        }
+
         .role-option.active {
-            border-color: #00a8ff !important;
+            border-color: #00a8ff;
             background: #eaf7ff;
-            color: #071a2b !important;
+            color: #071a2b;
             font-weight: bold;
+        }
+
+        .form-panel[hidden] {
+            display: none;
+        }
+
+        .approval-note {
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            margin-top: 14px;
         }
 
         .field-error {
@@ -171,9 +207,16 @@
         <div class="signup-card">
 
             <h2>Create Account</h2>
-            <p class="subtitle">Sign up with your UFH student email</p>
+            <p class="subtitle" id="signupSubtitle">Sign up with your UFH student email</p>
 
-            <form id="signupForm" onsubmit="handleSignup(event)">
+            <label id="roleLabel">I am a:</label>
+            <div class="role-select" role="group" aria-labelledby="roleLabel">
+                <button type="button" class="role-option active" data-role="student" onclick="selectRole(this)">Student</button>
+                <button type="button" class="role-option" data-role="staff" onclick="selectRole(this)">Staff</button>
+            </div>
+
+            <!-- STUDENT FORM (unchanged) -->
+            <form id="signupForm" class="form-panel" onsubmit="handleSignup(event)">
 
                 <label for="fullName">Full Name</label>
                 <input type="text" id="fullName" required>
@@ -193,18 +236,10 @@
                 </select>
 
                 <label for="department">Department</label>
-<input
-    type="text"
-    id="department"
-    placeholder="Enter your department"
->
+                <input type="text" id="department" placeholder="Enter your department">
 
-<label for="programme">Programme</label>
-<input
-    type="text"
-    id="programme"
-    placeholder="Enter your programme"
->
+                <label for="programme">Programme</label>
+                <input type="text" id="programme" placeholder="Enter your programme">
 
                 <label for="signupPassword">Password</label>
                 <input type="password" id="signupPassword" required>
@@ -217,7 +252,31 @@
 
             </form>
 
-            <p style="text-align:center; color:#999; font-size:12px; margin-top:14px;">Staff and Admin accounts are created by a library administrator, not through this page.</p>
+            <!-- STAFF FORM -->
+            <form id="staffSignupForm" class="form-panel" onsubmit="handleStaffSignup(event)" hidden>
+
+                <label for="staffFullName">Full Name</label>
+                <input type="text" id="staffFullName" required>
+
+                <label for="staffEmail">Staff Email</label>
+                <input type="email" id="staffEmail" placeholder="e.g. 12345@ufh.ac.za" required>
+                <p class="field-error" id="staffEmailError">Please use your @ufh.ac.za staff email address.</p>
+
+                <label for="staffDepartment">Department</label>
+                <input type="text" id="staffDepartment" placeholder="Enter your department">
+
+                <label for="staffPassword">Password</label>
+                <input type="password" id="staffPassword" required>
+
+                <label for="staffConfirmPassword">Confirm Password</label>
+                <input type="password" id="staffConfirmPassword" required>
+                <p class="field-error" id="staffPasswordError">Passwords do not match.</p>
+
+                <button type="submit" class="signup-btn">Request Staff Account</button>
+
+                <p class="approval-note">A library administrator must approve your staff account before you can log in.</p>
+
+            </form>
 
             <a href="/login" class="login-link">Already have an account? Log in</a>
 
@@ -226,6 +285,92 @@
     </div>
 
     <script>
+
+        const SUBTITLES = {
+            student: "Sign up with your UFH student email",
+            staff: "Request a staff account with your UFH staff email"
+        };
+
+        function selectRole(el) {
+            const role = el.getAttribute('data-role');
+
+            document.querySelectorAll('.role-option').forEach(function(opt) {
+                opt.classList.toggle('active', opt === el);
+            });
+
+            document.getElementById('signupForm').hidden = (role !== 'student');
+            document.getElementById('staffSignupForm').hidden = (role !== 'staff');
+            document.getElementById('signupSubtitle').textContent = SUBTITLES[role];
+        }
+
+        // Allow linking straight to the staff tab: /register?role=staff
+        if (new URLSearchParams(window.location.search).get('role') === 'staff') {
+            selectRole(document.querySelector('.role-option[data-role="staff"]'));
+        }
+
+        function handleStaffSignup(e) {
+            e.preventDefault();
+
+            let fullName = document.getElementById('staffFullName').value.trim();
+            let email = document.getElementById('staffEmail').value.trim().toLowerCase();
+            let department = document.getElementById('staffDepartment').value.trim();
+            let pass = document.getElementById('staffPassword').value;
+            let confirmPass = document.getElementById('staffConfirmPassword').value;
+
+            let emailError = document.getElementById('staffEmailError');
+            let passwordError = document.getElementById('staffPasswordError');
+
+            emailError.style.display = "none";
+            passwordError.style.display = "none";
+
+            if (!/^\d{5}@ufh\.ac\.za$/.test(email)) {
+                emailError.textContent = "Staff email must be 5 digits followed by @ufh.ac.za (e.g. 12345@ufh.ac.za).";
+                emailError.style.display = "block";
+                return;
+            }
+
+            if (pass.length < 6) {
+                passwordError.textContent = "Password must be at least 6 characters.";
+                passwordError.style.display = "block";
+                return;
+            }
+            if (pass !== confirmPass) {
+                passwordError.textContent = "Passwords do not match.";
+                passwordError.style.display = "block";
+                return;
+            }
+
+            let nameParts = fullName.split(" ");
+            let firstName = nameParts[0];
+            let lastName = nameParts.slice(1).join(" ") || firstName;
+
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    role: 'staff',
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: pass,
+                    department: department
+                })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(result => {
+                if (result.status !== 200) {
+                    emailError.textContent = result.data.error;
+                    emailError.style.display = "block";
+                    return;
+                }
+                alert("Staff account requested. A library administrator must approve it before you can log in.");
+                window.location.href = "/login";
+            })
+            .catch(() => {
+                emailError.textContent = "Could not reach the server. Is Flask running?";
+                emailError.style.display = "block";
+            });
+        }
 
         function handleSignup(e) {
             e.preventDefault();

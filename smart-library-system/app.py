@@ -3,8 +3,10 @@ import psycopg2
 import re
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from decimal import Decimal, InvalidOperation
+from datetime import date, timedelta
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY")  # needed for login sessions
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "development-secret-key-change-this")  # needed for login sessions
 
 
 def get_db_connection():
@@ -12,7 +14,7 @@ def get_db_connection():
         host="127.0.0.1",
         database="library_system",
         user="postgres",
-        password=os.getenv("LIBRARY_DB_PASSWORD"),
+        password=os.getenv("library123"),
         port="5432"
     )
 
@@ -41,6 +43,57 @@ def log_action(member_id, action, details=None):
 
     cursor.close()
     conn.close()
+
+
+def create_notification(cursor, member_id, notification_type, title, message, loan_id=None, reservation_id=None):
+    """Create a notification once for a member/loan/event."""
+    cursor.execute("""
+        SELECT id
+        FROM notification
+        WHERE member_id = %s
+          AND notification_type = %s
+          AND (loan_id = %s OR (%s IS NULL AND loan_id IS NULL))
+          AND (reservation_id = %s OR (%s IS NULL AND reservation_id IS NULL))
+        LIMIT 1;
+    """, (member_id, notification_type, loan_id, loan_id, reservation_id, reservation_id))
+
+    if cursor.fetchone():
+        return False
+
+    cursor.execute("""
+        INSERT INTO notification
+        (member_id, loan_id, reservation_id, notification_type, title, message)
+        VALUES (%s, %s, %s, %s, %s, %s);
+    """, (member_id, loan_id, reservation_id, notification_type, title, message))
+    return True
+
+
+
+def sync_overdue_loan_status(cursor):
+    """Keep loan_status automatically in sync for currently overdue loans."""
+    cursor.execute("""
+        UPDATE loan
+        SET loan_status = 'OVERDUE'
+        WHERE returned_date IS NULL
+        AND due_date < CURRENT_DATE
+        AND COALESCE(loan_status, 'BORROWED') = 'BORROWED';
+    """)
+
+
+def get_current_overdue_amount(cursor, loan_id):
+    """Return the live overdue fine for an active loan at R25 per day."""
+    cursor.execute("""
+        SELECT
+            GREATEST(CURRENT_DATE - due_date, 0) * 25.00
+        FROM loan
+        WHERE id = %s
+        AND returned_date IS NULL
+        AND due_date < CURRENT_DATE
+        AND COALESCE(loan_status, 'BORROWED') = 'OVERDUE';
+    """, (loan_id,))
+    row = cursor.fetchone()
+    return row[0] if row and row[0] is not None else Decimal('0.00')
+
 
 @app.route('/')
 def home():
@@ -150,82 +203,73 @@ def submit_purchase_request():
 @app.route('/api/pay-fine', methods=['POST'])
 def pay_fine():
 
-    # Student must be logged in
     if 'member_id' not in session:
-        return jsonify({
-            "error": "Please log in first."
-        }), 401
+        return jsonify({"error": "Please log in first."}), 401
 
-    # Only students can pay fines
     if session.get('role') != 'student':
-        return jsonify({
-            "error": "Only students can pay fines."
-        }), 403
+        return jsonify({"error": "Only students can pay fines."}), 403
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
+        sync_overdue_loan_status(cursor)
 
-        # Calculate total fines
+        # Finalized fines: returned-overdue, lost, or damaged books.
         cursor.execute("""
             SELECT COALESCE(SUM(fine_amount), 0)
             FROM fine
             WHERE member_id = %s;
         """, (session['member_id'],))
+        finalized_fines = cursor.fetchone()[0] or Decimal('0.00')
 
-        total_fines = cursor.fetchone()[0]
+        # Live fines: active overdue loans are calculated from today's date.
+        cursor.execute("""
+            SELECT COALESCE(SUM(
+                GREATEST(CURRENT_DATE - l.due_date, 0) * 25.00
+            ), 0)
+            FROM loan l
+            WHERE l.member_id = %s
+            AND l.returned_date IS NULL
+            AND l.due_date < CURRENT_DATE
+            AND COALESCE(l.loan_status, 'BORROWED') = 'OVERDUE';
+        """, (session['member_id'],))
+        live_overdue = cursor.fetchone()[0] or Decimal('0.00')
 
-        # Calculate total payments already made
+        total_fines = finalized_fines + live_overdue
+
         cursor.execute("""
             SELECT COALESCE(SUM(payment_amount), 0)
             FROM fine_payment
             WHERE member_id = %s;
         """, (session['member_id'],))
+        total_paid = cursor.fetchone()[0] or Decimal('0.00')
 
-        total_paid = cursor.fetchone()[0]
-
-        # Calculate outstanding balance
         outstanding = total_fines - total_paid
 
         if outstanding <= 0:
-
             conn.rollback()
+            return jsonify({"message": "You have no outstanding fines."}), 200
 
-            return jsonify({
-                "message": "You have no outstanding fines."
-            }), 200
-
-        # Record the payment
         cursor.execute("""
             INSERT INTO fine_payment
-            (
-                member_id,
-                payment_date,
-                payment_amount
-            )
+            (member_id, payment_date, payment_amount)
             VALUES (%s, CURRENT_DATE, %s);
-        """, (
-            session['member_id'],
-            outstanding
-        ))
+        """, (session['member_id'], outstanding))
 
         conn.commit()
 
         return jsonify({
-            "message": f"Fine payment of R{outstanding:.2f} was successful."
+            "message": f"Fine payment of R{outstanding:.2f} was successful.",
+            "amount_paid": float(outstanding)
         }), 200
 
-    except Exception:
-
+    except Exception as exc:
         conn.rollback()
-
-        return jsonify({
-            "error": "Could not process the fine payment."
-        }), 500
+        print("PAY FINE ERROR:", exc)
+        return jsonify({"error": "Could not process the fine payment."}), 500
 
     finally:
-
         cursor.close()
         conn.close()
 
@@ -1038,9 +1082,25 @@ def loans():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    sync_overdue_loan_status(cursor)
+
     cursor.execute("""
-        SELECT l.id, b.title, m.first_name || ' ' || m.last_name AS student,
-               l.loan_date, l.due_date, l.returned_date
+        SELECT
+            l.id,
+            b.title,
+            m.first_name || ' ' || m.last_name AS student,
+            l.loan_date,
+            l.due_date,
+            l.returned_date,
+            COALESCE(l.loan_status, 'BORROWED'),
+            COALESCE(b.market_value, 0),
+            CASE
+                WHEN l.returned_date IS NULL
+                     AND l.due_date < CURRENT_DATE
+                     AND COALESCE(l.loan_status, 'BORROWED') = 'OVERDUE'
+                THEN GREATEST(CURRENT_DATE - l.due_date, 0) * 25.00
+                ELSE 0.00
+            END AS current_fine
         FROM loan l
         JOIN book b ON l.book_id = b.id
         JOIN member m ON l.member_id = m.id
@@ -1053,20 +1113,34 @@ def loans():
     from datetime import date
     all_loans = []
     for row in rows:
-        loan_id, title, student, loan_date, due_date, returned_date = row
-        if returned_date:
+        (
+            loan_id, title, student, loan_date, due_date, returned_date,
+            loan_status, market_value, current_fine
+        ) = row
+
+        if loan_status == "LOST":
+            status = "Lost"
+        elif loan_status == "DAMAGED":
+            status = "Damaged"
+        elif returned_date:
             status = "Returned"
         elif due_date and due_date < date.today():
             status = "Overdue"
         else:
             status = "On Loan"
+
         all_loans.append({
             "loan_id": loan_id,
             "title": title,
             "student": student,
             "loan_date": loan_date.strftime("%d %b %Y") if loan_date else "",
             "due_date": due_date.strftime("%d %b %Y") if due_date else "-",
-            "status": status
+            "status": status,
+            "market_value": f"R{Decimal(market_value):.2f}",
+            "current_fine": f"R{Decimal(current_fine):.2f}",
+            "can_return": returned_date is None and loan_status not in ("LOST", "DAMAGED"),
+            "can_mark_lost": returned_date is None and loan_status not in ("LOST", "DAMAGED"),
+            "can_mark_damaged": returned_date is None and loan_status not in ("LOST", "DAMAGED")
         })
 
     return render_template('loans.html', all_loans=all_loans)
@@ -1313,9 +1387,13 @@ def api_search():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Public self-registration. Only ever creates STUDENT accounts —
-    Staff/Admin accounts must be created by an existing Admin
-    (see /admin/add-user), never self-selected here."""
+    """Public self-registration for STUDENT and STAFF accounts.
+
+    - Students are active immediately.
+    - Staff requests are saved as 'Inactive' (pending) and cannot log in
+      until an Admin approves them (see /api/staff/<id>/approve).
+    - Admin accounts can never be created here; only an existing Admin
+      can create them (see /admin/add-user)."""
 
     if request.method == 'GET':
         return render_template('signup.html')
@@ -1330,9 +1408,19 @@ def register():
     department = data.get('department', '').strip()
     programme = data.get('programme', '').strip()
 
-    role = "student"  # hardcoded — never trust a role submitted by the public form
+    role = data.get('role', 'student')
+
+    # Only student and staff may self-register. 'admin' (or anything else) is refused.
+    if role not in ('student', 'staff'):
+        return jsonify({"error": "Invalid account type."}), 400
+
+    if role == 'staff':
+        faculty = ''
+        programme = ''
 
     if not re.match(EMAIL_PATTERNS[role], email):
+        if role == 'staff':
+            return jsonify({"error": "Staff email must be 5 digits followed by @ufh.ac.za."}), 400
         return jsonify({"error": "Student email must be 9 digits followed by @ufh.ac.za."}), 400
 
     if len(password) < 6:
@@ -1362,7 +1450,7 @@ def register():
         programme,
         active_status_id
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1);
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
 """, (
     first_name,
     last_name,
@@ -1371,12 +1459,16 @@ def register():
     role,
     faculty,
     department,
-    programme
+    programme,
+    1 if role == 'student' else 2   # 1 = Active, 2 = Inactive (staff awaiting approval)
 ))
 
     conn.commit()
     cursor.close()
     conn.close()
+
+    if role == 'staff':
+        return jsonify({"message": "Staff account requested. An administrator must approve it before you can log in."})
 
     return jsonify({"message": "Account created successfully."})
 
@@ -1427,6 +1519,37 @@ def admin_add_user():
 
     return jsonify({"message": role.capitalize() + " account created successfully."})
 
+@app.route('/api/staff/<int:staff_id>/approve', methods=['POST'])
+def approve_staff(staff_id):
+    """Admin only: activate a staff account that was requested via sign-up."""
+    if session.get('role') != 'admin':
+        return jsonify({"error": "Only an admin can approve staff accounts."}), 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE member
+        SET active_status_id = 1
+        WHERE id = %s
+        AND role = 'staff'
+        AND active_status_id = 2;
+    """, (staff_id,))
+
+    if cursor.rowcount == 0:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "No pending staff account found."}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    log_action(session.get('member_id'), "APPROVE_STAFF", f"Approved staff account (member id {staff_id}).")
+
+    return jsonify({"message": "Staff account approved."})
+
+
 @app.route('/login.html')
 def login_html():
     return redirect(url_for('login'))
@@ -1474,6 +1597,11 @@ def login():
         return jsonify({
             "error": "Incorrect password. Please try again."
         }), 400
+
+    if active_status_id == 2 and actual_role == 'staff':
+        return jsonify({
+            "error": "Your staff account is awaiting approval by a library administrator."
+        }), 403
 
     if active_status_id != 1:
         return jsonify({
@@ -1623,15 +1751,15 @@ def dashboard():
                     f'{title} is due today. Please return it.'
                 ))
 
-        # Due within 3 days
-        elif days_left <= 3:
+        # One-day reminder: notify the member exactly one day before the due date.
+        elif days_left == 1:
 
             cursor.execute("""
                 SELECT id
                 FROM notification
                 WHERE member_id = %s
                 AND loan_id = %s
-                AND notification_type = 'DUE_SOON';
+                AND notification_type = 'DUE_TOMORROW';
             """, (
                 session['member_id'],
                 loan_id
@@ -1652,9 +1780,9 @@ def dashboard():
                 """, (
                     session['member_id'],
                     loan_id,
-                    'DUE_SOON',
-                    'Book due soon',
-                    f'{title} is due in {days_left} day(s). Please return it soon.'
+                    'DUE_TOMORROW',
+                    'Library book due tomorrow',
+                    f'Formal reminder: The library book "{title}" is due tomorrow, {due_date.strftime("%d %B %Y")}. Please return the book by the due date to avoid an overdue fine of R25.00 per day.'
                 ))
 
     # Reservation ready notifications
@@ -1809,31 +1937,66 @@ def dashboard():
            "reminder": reminder
     })
 
-       # Get the student's fines
+       # Keep overdue status current without requiring a nightly job.
+    sync_overdue_loan_status(cursor)
+
+    # Finalized fines (returned overdue, lost, or damaged).
     cursor.execute("""
         SELECT
             f.id,
             b.title,
             l.due_date,
             l.returned_date,
-            f.fine_amount
+            f.fine_amount,
+            f.fine_type,
+            f.status
         FROM fine f
         JOIN loan l ON f.loan_id = l.id
         JOIN book b ON l.book_id = b.id
         WHERE f.member_id = %s
-        ORDER BY f.fine_date DESC;
+        ORDER BY f.fine_date DESC, f.id DESC;
     """, (session['member_id'],))
 
     fine_rows = cursor.fetchall()
 
-    # Get total fines
+    # Live fines for books that are still overdue. These increase by R25/day.
+    cursor.execute("""
+        SELECT
+            l.id,
+            b.title,
+            l.due_date,
+            GREATEST(CURRENT_DATE - l.due_date, 0) * 25.00 AS current_fine
+        FROM loan l
+        JOIN book b ON l.book_id = b.id
+        WHERE l.member_id = %s
+        AND l.returned_date IS NULL
+        AND l.due_date < CURRENT_DATE
+        AND COALESCE(l.loan_status, 'BORROWED') = 'OVERDUE'
+        ORDER BY l.due_date ASC;
+    """, (session['member_id'],))
+
+    live_fine_rows = cursor.fetchall()
+
     cursor.execute("""
         SELECT COALESCE(SUM(fine_amount), 0)
         FROM fine
         WHERE member_id = %s;
     """, (session['member_id'],))
+    finalized_total = cursor.fetchone()[0] or Decimal('0.00')
 
-    total_fines = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COALESCE(SUM(
+            GREATEST(CURRENT_DATE - due_date, 0) * 25.00
+        ), 0)
+        FROM loan
+        WHERE member_id = %s
+        AND returned_date IS NULL
+        AND due_date < CURRENT_DATE
+        AND COALESCE(loan_status, 'BORROWED') = 'OVERDUE';
+    """, (session['member_id'],))
+    live_total = cursor.fetchone()[0] or Decimal('0.00')
+
+    total_fines = finalized_total + live_total
 
     # Get total amount already paid
     cursor.execute("""
@@ -1853,14 +2016,32 @@ def dashboard():
     fines = []
 
     for row in fine_rows:
-        fine_id, title, due_date, returned_date, fine_amount = row
+        fine_id, title, due_date, returned_date, fine_amount, fine_type, fine_status = row
 
         fines.append({
             "fine_id": fine_id,
             "title": title,
             "due_date": due_date.strftime("%d %b %Y") if due_date else "-",
             "returned_date": returned_date.strftime("%d %b %Y") if returned_date else "-",
-            "fine_amount": f"R{fine_amount:.2f}"
+            "fine_amount": f"R{fine_amount:.2f}",
+            "fine_type": fine_type or "OVERDUE",
+            "status": fine_status or "OUTSTANDING"
+        })
+
+    # Add live overdue fines. These are not inserted every day; the amount is
+    # calculated from CURRENT_DATE whenever the dashboard is loaded.
+    for row in live_fine_rows:
+        loan_id, title, due_date, current_fine = row
+
+        fines.append({
+            "fine_id": None,
+            "loan_id": loan_id,
+            "title": title,
+            "due_date": due_date.strftime("%d %b %Y") if due_date else "-",
+            "returned_date": "-",
+            "fine_amount": f"R{current_fine:.2f}",
+            "fine_type": "OVERDUE",
+            "status": "ACCRUING"
         })
 
     reservations = []
@@ -1914,6 +2095,8 @@ def dashboard_staff():
 
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    sync_overdue_loan_status(cursor)
 
     # Total books
     cursor.execute("""
@@ -2056,7 +2239,9 @@ def dashboard_admin():
         SELECT
             m.first_name || ' ' || m.last_name,
             m.email,
-            m.role
+            m.role,
+            m.id,
+            m.active_status_id
         FROM member m
         WHERE m.role IN ('staff', 'admin')
         ORDER BY m.role, m.first_name;
@@ -2113,7 +2298,9 @@ def dashboard_admin():
         {
             "name": r[0],
             "email": r[1],
-            "role": r[2]
+            "role": r[2],
+            "id": r[3],
+            "pending": (r[2] == 'staff' and r[4] == 2)
         }
         for r in staff_admin_rows
     ]
@@ -2396,8 +2583,8 @@ def admin_add_announcement():
 @app.route('/borrow', methods=['POST'])
 def borrow_book():
 
-    if session.get('role') != 'student':
-        return jsonify({"error": "Only students can borrow books."}), 403
+    if session.get('role') not in ('student', 'staff'):
+        return jsonify({"error": "Only students and staff can borrow books."}), 403
 
     data = request.get_json()
     book_id = data.get('book_id')
@@ -2467,26 +2654,47 @@ def borrow_book():
     # Create the loan using the selected physical copy
     cursor.execute("""
         INSERT INTO loan
-        (book_id, member_id, loan_date, due_date, copy_id)
-        VALUES (%s, %s, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days', %s);
+        (book_id, member_id, loan_date, due_date, copy_id, loan_status)
+        VALUES (%s, %s, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days', %s, 'BORROWED')
+        RETURNING id, due_date;
     """, (
         book_id,
         session['member_id'],
         copy_id
     ))
+    new_loan_id, new_due_date = cursor.fetchone()
 
-       # Mark the physical copy as borrowed
+    # Mark the physical copy as borrowed
     cursor.execute("""
         UPDATE book_copy
         SET copy_status = 'BORROWED'
         WHERE copy_id = %s;
     """, (copy_id,))
 
+    # Notify the member immediately after the book is borrowed.
+    due_date_text = new_due_date.strftime('%d %B %Y') if new_due_date else 'the stated due date'
+    create_notification(
+    cursor,
+    session['member_id'],
+    'BOOK_BORROWED',
+    'Library Loan Confirmation',
+    (
+        f'Formal notice: The library confirms that you have borrowed '
+        f'"{title}". The book is due for return on {due_date_text}. '
+        f'An overdue fine of R25.00 will be charged for each day the book '
+        f'remains overdue. If the book is returned significantly damaged, '
+        f'or is declared lost, you will be liable for the applicable '
+        f'market/replacement value of the book. Please ensure that the '
+        f'book is returned on or before the stated due date.'
+    ),
+    loan_id=new_loan_id
+)
+
     # Record the borrow action in the audit log
     log_action(
         session['member_id'],
         "BORROW",
-        f"Student borrowed '{title}' (Copy {barcode})."
+        f"{session.get('role').capitalize()} borrowed '{title}' (Copy {barcode})."
     )
 
     conn.commit()
@@ -2495,7 +2703,7 @@ def borrow_book():
     conn.close()
 
     return jsonify({
-        "message": f"Book borrowed successfully. Copy {barcode} is assigned to you. It is due back in 14 days."
+        "message": f"Book borrowed successfully. Copy {barcode} has been assigned to you and is due on {due_date_text}. Please return the book by the due date. Overdue books incur a fine of R25.00 per overdue day. Books that are declared lost or significantly damaged are charged at the applicable market/replacement value."
     })
 
 
@@ -2526,9 +2734,11 @@ def return_book():
             book_id,
             due_date,
             returned_date,
-            copy_id
-        FROM loan
-        WHERE id = %s;
+            copy_id,
+            b.title
+        FROM loan l
+        JOIN book b ON b.id = l.book_id
+        WHERE l.id = %s;
     """, (loan_id,))
 
     loan = cursor.fetchone()
@@ -2538,7 +2748,7 @@ def return_book():
         conn.close()
         return jsonify({"error": "Loan not found."}), 404
 
-    loan_id, member_id, book_id, due_date, returned_date, copy_id = loan
+    loan_id, member_id, book_id, due_date, returned_date, copy_id, title = loan
 
     # Students can only return their own books
     if session.get('role') == 'student' and member_id != session['member_id']:
@@ -2556,19 +2766,22 @@ def return_book():
             "error": "This book has already been returned."
         }), 400
 
-    # Calculate overdue days
+    # Calculate the final overdue amount at the moment of return.
     cursor.execute("""
         SELECT GREATEST(CURRENT_DATE - due_date, 0)
         FROM loan
         WHERE id = %s;
     """, (loan_id,))
 
-    overdue_days = cursor.fetchone()[0]
+    overdue_days = cursor.fetchone()[0] or 0
+    fine_amount = Decimal(overdue_days) * Decimal('25.00')
 
-    # Return the loan
+    # Return the loan and stop the live fine from accruing.
     cursor.execute("""
         UPDATE loan
-        SET returned_date = CURRENT_DATE
+        SET
+            returned_date = CURRENT_DATE,
+            loan_status = 'RETURNED'
         WHERE id = %s;
     """, (loan_id,))
 
@@ -2619,15 +2832,34 @@ def return_book():
                 WHERE copy_id = %s;
             """, (copy_id,))
 
-       # Create a fine if the book is overdue
-    fine_amount = overdue_days * 5
-
+    # Finalize one overdue fine when an overdue book is returned.
     if fine_amount > 0:
         cursor.execute("""
             INSERT INTO fine
-            (member_id, loan_id, fine_date, fine_amount)
-            VALUES (%s, %s, CURRENT_DATE, %s);
-        """, (member_id, loan_id, fine_amount))
+            (member_id, loan_id, fine_date, fine_amount, fine_type, status, notes, finalized_at)
+            VALUES (%s, %s, CURRENT_DATE, %s, 'OVERDUE', 'OUTSTANDING', %s, CURRENT_TIMESTAMP);
+        """, (
+            member_id,
+            loan_id,
+            fine_amount,
+            f"Book returned {overdue_days} day(s) late at R25.00 per day."
+        ))
+
+    # Notify the member of the return outcome.
+    if fine_amount > 0:
+        create_notification(
+            cursor, member_id, 'BOOK_RETURNED_OVERDUE',
+            'Overdue book returned - fine applied',
+            f'Formal notice: "{title}" was returned {overdue_days} day(s) after the due date. A fine of R{fine_amount:.2f} has been added to your library account at R25.00 per overdue day.',
+            loan_id=loan_id
+        )
+    else:
+        create_notification(
+            cursor, member_id, 'BOOK_RETURNED',
+            'Book returned successfully',
+            f'Formal notice: "{title}" has been returned successfully. No overdue fine was applied.',
+            loan_id=loan_id
+        )
 
     # Record the return action in the audit log
     log_action(
@@ -2650,6 +2882,202 @@ def return_book():
     return jsonify({
         "message": "Book returned successfully. No fine."
     })
+@app.route('/staff/mark-lost', methods=['POST'])
+def mark_book_lost():
+    """Staff/admin confirms a loaned book is lost and charges market value."""
+    if session.get('role') not in ('staff', 'admin'):
+        return jsonify({"error": "Only staff or admin can mark a book lost."}), 403
+
+    data = request.get_json() or {}
+    loan_id = data.get('loan_id')
+
+    if not loan_id:
+        return jsonify({"error": "Loan ID is required."}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT
+                l.member_id,
+                l.book_id,
+                l.copy_id,
+                l.returned_date,
+                COALESCE(l.loan_status, 'BORROWED'),
+                b.title,
+                COALESCE(b.market_value, 0)
+            FROM loan l
+            JOIN book b ON b.id = l.book_id
+            WHERE l.id = %s
+            FOR UPDATE;
+        """, (loan_id,))
+
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Loan not found."}), 404
+
+        member_id, book_id, copy_id, returned_date, loan_status, title, market_value = row
+
+        if returned_date is not None or loan_status == 'RETURNED':
+            return jsonify({"error": "This book has already been returned."}), 400
+
+        if loan_status in ('LOST', 'DAMAGED'):
+            return jsonify({"error": f"This loan is already marked {loan_status.lower()}."}), 400
+
+        if market_value <= 0:
+            return jsonify({"error": "This book has no market/replacement value. Add a value before marking it lost."}), 400
+
+        cursor.execute("""
+            UPDATE loan
+            SET loan_status = 'LOST'
+            WHERE id = %s;
+        """, (loan_id,))
+
+        if copy_id:
+            cursor.execute("""
+                UPDATE book_copy
+                SET copy_status = 'LOST'
+                WHERE copy_id = %s;
+            """, (copy_id,))
+
+        cursor.execute("""
+            INSERT INTO fine
+            (member_id, loan_id, fine_date, fine_amount, fine_type, status, notes, finalized_at)
+            VALUES (%s, %s, CURRENT_DATE, %s, 'LOST', 'OUTSTANDING', %s, CURRENT_TIMESTAMP);
+        """, (
+            member_id,
+            loan_id,
+            market_value,
+            f"Book '{title}' declared lost. Market/replacement value charged."
+        ))
+
+        create_notification(
+            cursor, member_id, 'BOOK_LOST',
+            'Book declared lost - replacement value charged',
+            f'Formal notice: The book "{title}" has been declared lost. The market/replacement value of R{market_value:.2f} has been added to your library account. The normal R25.00-per-day overdue charge no longer applies to this loan.',
+            loan_id=loan_id
+        )
+
+        log_action(
+            session['member_id'],
+            'BOOK_LOST',
+            f"{session.get('role').capitalize()} marked loan {loan_id} for '{title}' as lost. Charged R{market_value:.2f}."
+        )
+
+        conn.commit()
+        return jsonify({
+            "message": f"Book marked lost. R{market_value:.2f} market/replacement value added to the student's fines.",
+            "fine_amount": float(market_value)
+        }), 200
+
+    except Exception as exc:
+        conn.rollback()
+        print('MARK LOST ERROR:', exc)
+        return jsonify({"error": "Could not mark the book as lost."}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/staff/mark-damaged', methods=['POST'])
+def mark_book_damaged():
+    """Staff/admin confirms significant damage and charges market value."""
+    if session.get('role') not in ('staff', 'admin'):
+        return jsonify({"error": "Only staff or admin can mark a book damaged."}), 403
+
+    data = request.get_json() or {}
+    loan_id = data.get('loan_id')
+
+    if not loan_id:
+        return jsonify({"error": "Loan ID is required."}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT
+                l.member_id,
+                l.book_id,
+                l.copy_id,
+                l.returned_date,
+                COALESCE(l.loan_status, 'BORROWED'),
+                b.title,
+                COALESCE(b.market_value, 0)
+            FROM loan l
+            JOIN book b ON b.id = l.book_id
+            WHERE l.id = %s
+            FOR UPDATE;
+        """, (loan_id,))
+
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Loan not found."}), 404
+
+        member_id, book_id, copy_id, returned_date, loan_status, title, market_value = row
+
+        if returned_date is not None or loan_status == 'RETURNED':
+            return jsonify({"error": "This book has already been returned."}), 400
+
+        if loan_status in ('LOST', 'DAMAGED'):
+            return jsonify({"error": f"This loan is already marked {loan_status.lower()}."}), 400
+
+        if market_value <= 0:
+            return jsonify({"error": "This book has no market/replacement value. Add a value before marking it damaged."}), 400
+
+        cursor.execute("""
+            UPDATE loan
+            SET loan_status = 'DAMAGED'
+            WHERE id = %s;
+        """, (loan_id,))
+
+        if copy_id:
+            cursor.execute("""
+                UPDATE book_copy
+                SET copy_status = 'DAMAGED'
+                WHERE copy_id = %s;
+            """, (copy_id,))
+
+        cursor.execute("""
+            INSERT INTO fine
+            (member_id, loan_id, fine_date, fine_amount, fine_type, status, notes, finalized_at)
+            VALUES (%s, %s, CURRENT_DATE, %s, 'DAMAGED', 'OUTSTANDING', %s, CURRENT_TIMESTAMP);
+        """, (
+            member_id,
+            loan_id,
+            market_value,
+            f"Book '{title}' significantly damaged. Market/replacement value charged."
+        ))
+
+        create_notification(
+            cursor, member_id, 'BOOK_DAMAGED',
+            'Book declared significantly damaged - replacement value charged',
+            f'Formal notice: The book "{title}" has been declared significantly damaged. The market/replacement value of R{market_value:.2f} has been added to your library account. The normal R25.00-per-day overdue charge no longer applies to this loan.',
+            loan_id=loan_id
+        )
+
+        log_action(
+            session['member_id'],
+            'BOOK_DAMAGED',
+            f"{session.get('role').capitalize()} marked loan {loan_id} for '{title}' as significantly damaged. Charged R{market_value:.2f}."
+        )
+
+        conn.commit()
+        return jsonify({
+            "message": f"Book marked damaged. R{market_value:.2f} market/replacement value added to the student's fines.",
+            "fine_amount": float(market_value)
+        }), 200
+
+    except Exception as exc:
+        conn.rollback()
+        print('MARK DAMAGED ERROR:', exc)
+        return jsonify({"error": "Could not mark the book as damaged."}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/add-book', methods=['POST'])
 def add_book():
 
@@ -2661,6 +3089,7 @@ def add_book():
     author_name = data.get('author', '').strip()
     category_name = data.get('category', '').strip()
     copies = data.get('copies', 1)
+    market_value_raw = data.get('marketValue', data.get('market_value', 0))
 
     if not title or not author_name:
         return jsonify({"error": "Title and author are required."}), 400
@@ -2675,6 +3104,18 @@ def add_book():
     if copies < 1:
         return jsonify({
             "error": "There must be at least 1 copy."
+        }), 400
+
+    try:
+        market_value = Decimal(str(market_value_raw))
+    except (InvalidOperation, ValueError, TypeError):
+        return jsonify({
+            "error": "Market/replacement value must be a valid amount."
+        }), 400
+
+    if market_value < 0:
+        return jsonify({
+            "error": "Market/replacement value cannot be negative."
         }), 400
 
     conn = get_db_connection()
@@ -2700,10 +3141,10 @@ def add_book():
 
     # Insert the book
     cursor.execute("""
-        INSERT INTO book (title, category_id, publication_date, copies_owned)
-        VALUES (%s, %s, CURRENT_DATE, %s)
+        INSERT INTO book (title, category_id, publication_date, copies_owned, market_value)
+        VALUES (%s, %s, CURRENT_DATE, %s, %s)
         RETURNING id;
-    """, (title, category_id, copies))
+    """, (title, category_id, copies, market_value))
     book_id = cursor.fetchone()[0]
 
     # Create physical copies for the new book
@@ -2780,6 +3221,19 @@ def edit_book():
     title = data.get('title', '').strip()
     author_name = data.get('author', '').strip()
     category_name = data.get('category', '').strip()
+    market_value_raw = data.get('marketValue', data.get('market_value', 0))
+
+    try:
+        market_value = Decimal(str(market_value_raw))
+    except (InvalidOperation, ValueError, TypeError):
+        return jsonify({
+            "error": "Market/replacement value must be a valid amount."
+        }), 400
+
+    if market_value < 0:
+        return jsonify({
+            "error": "Market/replacement value cannot be negative."
+        }), 400
 
     try:
         copies = int(data.get('copies'))
@@ -2906,12 +3360,14 @@ def edit_book():
             SET
                 title = %s,
                 category_id = %s,
-                copies_owned = %s
+                copies_owned = %s,
+                market_value = %s
             WHERE id = %s;
         """, (
             title,
             category_id,
             copies,
+            market_value,
             book_id
         ))
 

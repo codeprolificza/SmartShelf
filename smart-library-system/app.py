@@ -6,15 +6,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from decimal import Decimal, InvalidOperation
 from datetime import date, timedelta
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "development-secret-key-change-this")  # needed for login sessions
+app.secret_key = os.getenv("FLASK_SECRET_KEY")  # needed for login sessions
 
 
 def get_db_connection():
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return psycopg2.connect(url)
+
     return psycopg2.connect(
         host="127.0.0.1",
         database="library_system",
         user="postgres",
-        password=os.getenv("library123"),
+        password=os.getenv("DB_PASSWORD"),
         port="5432"
     )
 

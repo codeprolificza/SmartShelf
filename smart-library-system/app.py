@@ -10,11 +10,15 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "development-secret-key-change-th
 
 
 def get_db_connection():
+    url = os.getenv("DATABASE_URL")
+    if url:
+        return psycopg2.connect(url)
+
     return psycopg2.connect(
         host="127.0.0.1",
         database="library_system",
         user="postgres",
-        password=os.getenv("library123"),
+        password=os.getenv("DB_PASSWORD", "library123"),
         port="5432"
     )
 

@@ -360,6 +360,7 @@
     <script>
 
         let currentCategory = "{{ initial_category }}";
+        let currentRole = "{{ session.get('role', '') }}";
         let searchTimeout = null;
         let currentAuthor = "all";
         let currentYear = "all";
@@ -474,24 +475,14 @@ function loadFacets(books) {
 
         let actionButton = "";
 
-        if (book.copies > 0) {
-
-            actionButton =
-                "<button class='borrow-btn' " +
-                "data-book-id='" + book.id + "' " +
-                "data-book-name='" + book.title + "'>" +
-                "Borrow Book" +
-                "</button>";
-
-        } else {
-
-            actionButton =
-                "<button class='reserve-btn' " +
-                "data-book-id='" + book.id + "' " +
-                "data-book-name='" + book.title + "'>" +
-                "Reserve Book" +
-                "</button>";
-
+        if (currentRole === "student" || currentRole === "staff") {
+            if (book.copies > 0) {
+                actionButton = "<button class='borrow-btn' data-book-id='" + book.id +
+                    "' data-book-name='" + book.title + "'>Request for Collection</button>";
+            } else if (currentRole === "student") {
+                actionButton = "<button class='reserve-btn' data-book-id='" + book.id +
+                    "' data-book-name='" + book.title + "'>Reserve Book</button>";
+            }
         }
 
         div.innerHTML =

@@ -80,8 +80,22 @@ def sync_overdue_loan_status(cursor):
         SET loan_status = 'OVERDUE'
         WHERE returned_date IS NULL
         AND due_date < CURRENT_DATE
-        AND COALESCE(loan_status, 'BORROWED') = 'BORROWED';
+        AND COALESCE(loan_status, 'BORROWED') IN ('BORROWED', 'OUT');
     """)
+
+
+def expire_uncollected_loans(cursor):
+    """Release copies after the 24-hour collection window expires."""
+    cursor.execute("""
+        UPDATE loan SET loan_status = 'EXPIRED'
+        WHERE loan_status = 'READY_FOR_COLLECTION' AND returned_date IS NULL
+          AND collection_expires_at <= CURRENT_TIMESTAMP
+        RETURNING copy_id;
+    """)
+    copy_ids = [row[0] for row in cursor.fetchall() if row[0] is not None]
+    if copy_ids:
+        cursor.execute("UPDATE book_copy SET copy_status = 'AVAILABLE' WHERE copy_id = ANY(%s);", (copy_ids,))
+    return len(copy_ids)
 
 
 def get_current_overdue_amount(cursor, loan_id):
@@ -754,100 +768,58 @@ def reserve_book():
 
 @app.route('/borrowed')
 def borrowed():
-
     if session.get('role') != 'student':
         return redirect(url_for('login'))
-
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # Get the student's borrowed books
+    expire_uncollected_loans(cursor)
     cursor.execute("""
-        SELECT
-            l.id,
-            b.title,
-            l.loan_date,
-            l.due_date,
-            l.returned_date
-        FROM loan l
-        JOIN book b
-            ON l.book_id = b.id
-        WHERE l.member_id = %s
-        ORDER BY l.loan_date DESC;
+        SELECT l.id, b.id, b.title, l.loan_date, l.due_date, l.returned_date,
+               COALESCE(l.loan_status, 'BORROWED'), l.collection_expires_at,
+               EXISTS (SELECT 1 FROM book_review br WHERE br.book_id = b.id AND br.member_id = l.member_id)
+        FROM loan l JOIN book b ON l.book_id = b.id
+        WHERE l.member_id = %s ORDER BY l.loan_date DESC;
     """, (session['member_id'],))
-
     loan_rows = cursor.fetchall()
-
-    # Get the student's reservations
     cursor.execute("""
-        SELECT
-            r.id,
-            b.title,
-            r.reservation_date,
-            r.queue_position,
-            rs.status_value,
-            r.expires_at
-        FROM reservation r
-        JOIN book b
-            ON r.book_id = b.id
-        JOIN reservation_status rs
-            ON r.reservation_status_id = rs.id
-        WHERE r.member_id = %s
-        ORDER BY r.reservation_date DESC, r.id DESC;
+        SELECT r.id, b.title, r.reservation_date, r.queue_position, rs.status_value, r.expires_at
+        FROM reservation r JOIN book b ON r.book_id = b.id
+        JOIN reservation_status rs ON r.reservation_status_id = rs.id
+        WHERE r.member_id = %s ORDER BY r.reservation_date DESC, r.id DESC;
     """, (session['member_id'],))
-
     reservation_rows = cursor.fetchall()
-
+    conn.commit()
     cursor.close()
     conn.close()
-
     from datetime import date
-
-    # Prepare borrowed-book history
     history = []
-
     for row in loan_rows:
-
-        loan_id, title, loan_date, due_date, returned_date = row
-
-        if returned_date:
-            status = "Returned"
-
-        elif due_date and due_date < date.today():
-            status = "Overdue"
-
-        else:
-            status = "Currently Out"
-
+        loan_id, book_id, title, loan_date, due_date, returned_date, status_code, expires_at, has_review = row
+        if status_code == "READY_FOR_COLLECTION": status = "Ready for Collection"
+        elif status_code == "EXPIRED": status = "Collection Expired"
+        elif returned_date or status_code == "RETURNED": status = "Returned"
+        elif status_code == "LOST": status = "Lost"
+        elif status_code == "DAMAGED": status = "Damaged"
+        elif due_date and due_date < date.today(): status = "Overdue"
+        else: status = "Out"
         history.append({
-            "loan_id": loan_id,
-            "title": title,
+            "loan_id": loan_id, "book_id": book_id, "title": title,
             "loan_date": loan_date.strftime("%d %b %Y") if loan_date else "",
             "due_date": due_date.strftime("%d %b %Y") if due_date else "-",
-            "status": status
+            "collection_expires_at": expires_at.strftime("%d %b %Y %H:%M") if expires_at else "",
+            "status": status, "can_review": status == "Returned" and not has_review,
+            "has_review": has_review
         })
-
-    # Prepare reservation information
     reservations = []
-
     for row in reservation_rows:
-
         reservation_id, title, reservation_date, queue_position, status, expires_at = row
-
         reservations.append({
-            "reservation_id": reservation_id,
-            "title": title,
+            "reservation_id": reservation_id, "title": title,
             "reservation_date": reservation_date.strftime("%d %b %Y") if reservation_date else "",
-            "queue_position": queue_position or "-",
-            "status": status,
+            "queue_position": queue_position or "-", "status": status,
             "expires_at": expires_at.strftime("%d %b %Y") if expires_at else "-"
         })
-
-    return render_template(
-        'borrowed.html',
-        history=history,
-        reservations=reservations
-    )
+    return render_template('borrowed.html', history=history, reservations=reservations)
 
 
 # ================================================
@@ -957,6 +929,8 @@ def submit_book_review():
         FROM loan
         WHERE book_id = %s
         AND member_id = %s
+        AND returned_date IS NOT NULL
+        AND loan_status = 'RETURNED'
         LIMIT 1;
     """, (
         book_id,
@@ -1082,71 +1056,47 @@ def profile():
 def loans():
     if session.get('role') not in ('staff', 'admin'):
         return redirect(url_for('login'))
-
     conn = get_db_connection()
     cursor = conn.cursor()
-
+    expire_uncollected_loans(cursor)
     sync_overdue_loan_status(cursor)
-
     cursor.execute("""
-        SELECT
-            l.id,
-            b.title,
-            m.first_name || ' ' || m.last_name AS student,
-            l.loan_date,
-            l.due_date,
-            l.returned_date,
-            COALESCE(l.loan_status, 'BORROWED'),
-            COALESCE(b.market_value, 0),
-            CASE
-                WHEN l.returned_date IS NULL
-                     AND l.due_date < CURRENT_DATE
-                     AND COALESCE(l.loan_status, 'BORROWED') = 'OVERDUE'
-                THEN GREATEST(CURRENT_DATE - l.due_date, 0) * 25.00
-                ELSE 0.00
-            END AS current_fine
-        FROM loan l
-        JOIN book b ON l.book_id = b.id
-        JOIN member m ON l.member_id = m.id
-        ORDER BY l.loan_date DESC;
+        SELECT l.id, b.title, m.first_name || ' ' || m.last_name AS student,
+               l.loan_date, l.due_date, l.returned_date, COALESCE(l.loan_status, 'BORROWED'),
+               COALESCE(b.market_value, 0),
+               CASE WHEN l.returned_date IS NULL AND l.due_date < CURRENT_DATE
+                    AND COALESCE(l.loan_status, 'BORROWED') IN ('OVERDUE', 'BORROWED', 'OUT')
+                    THEN GREATEST(CURRENT_DATE - l.due_date, 0) * 25.00 ELSE 0.00 END
+        FROM loan l JOIN book b ON l.book_id = b.id
+        JOIN member m ON l.member_id = m.id ORDER BY l.loan_date DESC;
     """)
     rows = cursor.fetchall()
+    conn.commit()
     cursor.close()
     conn.close()
-
     from datetime import date
     all_loans = []
     for row in rows:
-        (
-            loan_id, title, student, loan_date, due_date, returned_date,
-            loan_status, market_value, current_fine
-        ) = row
-
-        if loan_status == "LOST":
-            status = "Lost"
-        elif loan_status == "DAMAGED":
-            status = "Damaged"
-        elif returned_date:
-            status = "Returned"
-        elif due_date and due_date < date.today():
-            status = "Overdue"
-        else:
-            status = "On Loan"
-
+        loan_id, title, student, loan_date, due_date, returned_date, loan_status, market_value, current_fine = row
+        if loan_status == "READY_FOR_COLLECTION": status = "Ready for Collection"
+        elif loan_status == "EXPIRED": status = "Collection Expired"
+        elif loan_status == "LOST": status = "Lost"
+        elif loan_status == "DAMAGED": status = "Damaged"
+        elif returned_date or loan_status == "RETURNED": status = "Returned"
+        elif due_date and due_date < date.today(): status = "Overdue"
+        else: status = "On Loan"
+        is_open = returned_date is None and loan_status not in ("LOST", "DAMAGED", "EXPIRED", "RETURNED")
         all_loans.append({
-            "loan_id": loan_id,
-            "title": title,
-            "student": student,
+            "loan_id": loan_id, "title": title, "student": student,
             "loan_date": loan_date.strftime("%d %b %Y") if loan_date else "",
-            "due_date": due_date.strftime("%d %b %Y") if due_date else "-",
-            "status": status,
-            "market_value": f"R{Decimal(market_value):.2f}",
+            "due_date": due_date.strftime("%d %b %Y") if due_date else "Not collected",
+            "status": status, "market_value": f"R{Decimal(market_value):.2f}",
             "current_fine": f"R{Decimal(current_fine):.2f}",
-            "can_return": returned_date is None and loan_status not in ("LOST", "DAMAGED"),
-            "can_mark_lost": returned_date is None and loan_status not in ("LOST", "DAMAGED"),
-            "can_mark_damaged": returned_date is None and loan_status not in ("LOST", "DAMAGED")
+            "can_collect": loan_status == "READY_FOR_COLLECTION" and is_open,
+            "can_return": loan_status in ("OUT", "BORROWED", "OVERDUE") and is_open,
+            "can_mark_lost": is_open and loan_status != "READY_FOR_COLLECTION",
+            "can_mark_damaged": is_open and loan_status != "READY_FOR_COLLECTION"
         })
-
     return render_template('loans.html', all_loans=all_loans)
 
 
@@ -1247,6 +1197,8 @@ def reactivate_student(student_id):
 def fetch_books(search_term="", category="", author="all", year="all"):
     conn = get_db_connection()
     cursor = conn.cursor()
+    expire_uncollected_loans(cursor)
+    conn.commit()
 
     query = """
         SELECT
@@ -1279,34 +1231,22 @@ def fetch_books(search_term="", category="", author="all", year="all"):
 
         LEFT JOIN book_copy bc
             ON b.id = bc.book_id
+        WHERE TRUE
     """
 
     params = []
 
-    # Search
+    # Search title, author, and category by keyword.
     if search_term:
-        if len(search_term) == 1 and search_term.isalpha():
-            query += """
-                AND b.title ILIKE %s
-            """
-            params.append(search_term + "%")
-
-        else:
-            query += """
-                AND (
-                    b.title ILIKE %s
-                    OR (a.first_name || ' ' || a.last_name) ILIKE %s
-                    OR c.category_name ILIKE %s
-                )
-            """
-
-            search_pattern = "%" + search_term + "%"
-
-            params.extend([
-                search_pattern,
-                search_pattern,
-                search_pattern
-            ])
+        query += """
+            AND (
+                b.title ILIKE %s
+                OR (a.first_name || ' ' || a.last_name) ILIKE %s
+                OR c.category_name ILIKE %s
+            )
+        """
+        search_pattern = "%" + search_term + "%"
+        params.extend([search_pattern, search_pattern, search_pattern])
 
     # Category filter
     if category and category != "all":
@@ -2586,306 +2526,173 @@ def admin_add_announcement():
 
 @app.route('/borrow', methods=['POST'])
 def borrow_book():
-
     if session.get('role') not in ('student', 'staff'):
-        return jsonify({"error": "Only students and staff can borrow books."}), 403
-
-    data = request.get_json()
+        return jsonify({"error": "Only students and staff can request books."}), 403
+    data = request.get_json() or {}
     book_id = data.get('book_id')
-
     if not book_id:
         return jsonify({"error": "Book ID is required."}), 400
-
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # Check that the book exists
-    cursor.execute("""
-        SELECT id, title
-        FROM book
-        WHERE id = %s;
-    """, (book_id,))
-
+    expire_uncollected_loans(cursor)
+    cursor.execute("SELECT id, title FROM book WHERE id = %s;", (book_id,))
     book = cursor.fetchone()
-
     if not book:
-        cursor.close()
-        conn.close()
+        cursor.close(); conn.close()
         return jsonify({"error": "Book not found."}), 404
-
     book_id, title = book
-
-    # Check if this student already has the same book
     cursor.execute("""
-        SELECT id
-        FROM loan
-        WHERE book_id = %s
-        AND member_id = %s
-        AND returned_date IS NULL;
+        SELECT id FROM loan
+        WHERE book_id = %s AND member_id = %s AND returned_date IS NULL;
     """, (book_id, session['member_id']))
-
-    existing_loan = cursor.fetchone()
-
-    if existing_loan:
-        cursor.close()
-        conn.close()
-        return jsonify({
-            "error": "You already have this book borrowed."
-        }), 400
-
-    # Find one available physical copy
+    if cursor.fetchone():
+        cursor.close(); conn.close()
+        return jsonify({"error": "You already have this book borrowed or awaiting collection."}), 400
     cursor.execute("""
-        SELECT copy_id, barcode
-        FROM book_copy
-        WHERE book_id = %s
-        AND copy_status = 'AVAILABLE'
-        ORDER BY copy_id
-        LIMIT 1
-        FOR UPDATE;
+        SELECT copy_id, barcode FROM book_copy
+        WHERE book_id = %s AND copy_status = 'AVAILABLE'
+        ORDER BY copy_id LIMIT 1 FOR UPDATE;
     """, (book_id,))
-
-    available_copy = cursor.fetchone()
-
-    if not available_copy:
-        cursor.close()
-        conn.close()
-        return jsonify({
-            "error": "No copies of this book are currently available."
-        }), 400
-
-    copy_id, barcode = available_copy
-
-    # Create the loan using the selected physical copy
+    copy = cursor.fetchone()
+    if not copy:
+        cursor.close(); conn.close()
+        return jsonify({"error": "No copies of this book are currently available."}), 400
+    copy_id, barcode = copy
     cursor.execute("""
         INSERT INTO loan
-        (book_id, member_id, loan_date, due_date, copy_id, loan_status)
-        VALUES (%s, %s, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days', %s, 'BORROWED')
-        RETURNING id, due_date;
-    """, (
-        book_id,
-        session['member_id'],
-        copy_id
-    ))
-    new_loan_id, new_due_date = cursor.fetchone()
-
-    # Mark the physical copy as borrowed
-    cursor.execute("""
-        UPDATE book_copy
-        SET copy_status = 'BORROWED'
-        WHERE copy_id = %s;
-    """, (copy_id,))
-
-    # Notify the member immediately after the book is borrowed.
-    due_date_text = new_due_date.strftime('%d %B %Y') if new_due_date else 'the stated due date'
-    create_notification(
-    cursor,
-    session['member_id'],
-    'BOOK_BORROWED',
-    'Library Loan Confirmation',
-    (
-        f'Formal notice: The library confirms that you have borrowed '
-        f'"{title}". The book is due for return on {due_date_text}. '
-        f'An overdue fine of R25.00 will be charged for each day the book '
-        f'remains overdue. If the book is returned significantly damaged, '
-        f'or is declared lost, you will be liable for the applicable '
-        f'market/replacement value of the book. Please ensure that the '
-        f'book is returned on or before the stated due date.'
-    ),
-    loan_id=new_loan_id
-)
-
-    # Record the borrow action in the audit log
-    log_action(
-        session['member_id'],
-        "BORROW",
-        f"{session.get('role').capitalize()} borrowed '{title}' (Copy {barcode})."
-    )
-
+            (book_id, member_id, loan_date, due_date, copy_id, loan_status, collection_expires_at)
+        VALUES (%s, %s, CURRENT_DATE, NULL, %s, 'READY_FOR_COLLECTION',
+                CURRENT_TIMESTAMP + INTERVAL '24 hours')
+        RETURNING id;
+    """, (book_id, session['member_id'], copy_id))
+    loan_id = cursor.fetchone()[0]
+    cursor.execute("UPDATE book_copy SET copy_status = 'BORROWED' WHERE copy_id = %s;", (copy_id,))
+    create_notification(cursor, session['member_id'], 'BOOK_BORROWED',
+        'Book ready for collection',
+        f'The book "{title}" is ready for collection. You have 24 hours to collect this book at the Library. Staff will record the loan when you collect it.',
+        loan_id=loan_id)
+    log_action(session['member_id'], "BORROW_REQUEST",
+        f"{session.get('role').capitalize()} requested '{title}' (Copy {barcode}); ready for collection for 24 hours.")
     conn.commit()
+    cursor.close(); conn.close()
+    return jsonify({"message": "The book is ready for collection, you have 24 hours to collect this book at the Library."})
 
-    cursor.close()
-    conn.close()
 
-    return jsonify({
-        "message": f"Book borrowed successfully. Copy {barcode} has been assigned to you and is due on {due_date_text}. Please return the book by the due date. Overdue books incur a fine of R25.00 per overdue day. Books that are declared lost or significantly damaged are charged at the applicable market/replacement value."
-    })
+@app.route('/staff/collect', methods=['POST'])
+def collect_book():
+    if session.get('role') not in ('staff', 'admin'):
+        return jsonify({"error": "Only library staff can record collection."}), 403
+    data = request.get_json() or {}
+    loan_id = data.get('loan_id')
+    if not loan_id:
+        return jsonify({"error": "Loan ID is required."}), 400
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    expire_uncollected_loans(cursor)
+    cursor.execute("""
+        SELECT l.member_id, l.loan_status, b.title
+        FROM loan l JOIN book b ON b.id = l.book_id
+        WHERE l.id = %s FOR UPDATE;
+    """, (loan_id,))
+    loan = cursor.fetchone()
+    if not loan:
+        conn.commit(); cursor.close(); conn.close()
+        return jsonify({"error": "Loan not found."}), 404
+    member_id, loan_status, title = loan
+    if loan_status != 'READY_FOR_COLLECTION':
+        conn.commit(); cursor.close(); conn.close()
+        return jsonify({"error": "This book is no longer waiting for collection."}), 400
+    cursor.execute("""
+        UPDATE loan SET loan_status = 'OUT', collected_at = CURRENT_TIMESTAMP,
+                        due_date = CURRENT_DATE + INTERVAL '14 days'
+        WHERE id = %s;
+    """, (loan_id,))
+    create_notification(cursor, member_id, 'BOOK_BORROWED', 'Book collected',
+        f'Staff recorded collection of "{title}". It is now Out and due back in 14 days.',
+        loan_id=loan_id)
+    log_action(session['member_id'], "COLLECT", f"Staff recorded collection of loan ID {loan_id} ('{title}').")
+    conn.commit()
+    cursor.close(); conn.close()
+    return jsonify({"message": "Collection recorded. The book is now Out."})
 
 
 # ================================================
+# ADD A BOOK (Staff / Admin only)# ================================================
 # ADD A BOOK (Staff / Admin only)
 # ================================================
 
 @app.route('/return', methods=['POST'])
 def return_book():
-
-    if 'member_id' not in session:
-        return jsonify({"error": "Please log in first."}), 401
-
-    data = request.get_json()
+    if session.get('role') not in ('staff', 'admin'):
+        return jsonify({"error": "Only library staff can record a return."}), 403
+    data = request.get_json() or {}
     loan_id = data.get('loan_id')
-
     if not loan_id:
         return jsonify({"error": "Loan ID is required."}), 400
-
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # Get the loan information
     cursor.execute("""
-        SELECT
-            id,
-            member_id,
-            book_id,
-            due_date,
-            returned_date,
-            copy_id,
-            b.title
-        FROM loan l
-        JOIN book b ON b.id = l.book_id
-        WHERE l.id = %s;
+        SELECT l.id, l.member_id, l.book_id, l.due_date, l.returned_date,
+               l.copy_id, b.title, COALESCE(l.loan_status, 'BORROWED')
+        FROM loan l JOIN book b ON b.id = l.book_id
+        WHERE l.id = %s FOR UPDATE;
     """, (loan_id,))
-
     loan = cursor.fetchone()
-
     if not loan:
-        cursor.close()
-        conn.close()
+        cursor.close(); conn.close()
         return jsonify({"error": "Loan not found."}), 404
-
-    loan_id, member_id, book_id, due_date, returned_date, copy_id, title = loan
-
-    # Students can only return their own books
-    if session.get('role') == 'student' and member_id != session['member_id']:
-        cursor.close()
-        conn.close()
-        return jsonify({
-            "error": "You can only return your own books."
-        }), 403
-
-    # Check if the book has already been returned
-    if returned_date is not None:
-        cursor.close()
-        conn.close()
-        return jsonify({
-            "error": "This book has already been returned."
-        }), 400
-
-    # Calculate the final overdue amount at the moment of return.
-    cursor.execute("""
-        SELECT GREATEST(CURRENT_DATE - due_date, 0)
-        FROM loan
-        WHERE id = %s;
-    """, (loan_id,))
-
+    loan_id, member_id, book_id, due_date, returned_date, copy_id, title, status = loan
+    if returned_date is not None or status == 'RETURNED':
+        cursor.close(); conn.close()
+        return jsonify({"error": "This book has already been returned."}), 400
+    if status == 'READY_FOR_COLLECTION':
+        cursor.close(); conn.close()
+        return jsonify({"error": "This book has not been collected yet."}), 400
+    if status in ('LOST', 'DAMAGED', 'EXPIRED'):
+        cursor.close(); conn.close()
+        return jsonify({"error": "This loan cannot be returned in its current status."}), 400
+    cursor.execute("SELECT GREATEST(CURRENT_DATE - due_date, 0) FROM loan WHERE id = %s;", (loan_id,))
     overdue_days = cursor.fetchone()[0] or 0
     fine_amount = Decimal(overdue_days) * Decimal('25.00')
-
-    # Return the loan and stop the live fine from accruing.
-    cursor.execute("""
-        UPDATE loan
-        SET
-            returned_date = CURRENT_DATE,
-            loan_status = 'RETURNED'
-        WHERE id = %s;
-    """, (loan_id,))
-
-    # Make the physical copy available
+    cursor.execute("UPDATE loan SET returned_date = CURRENT_DATE, loan_status = 'RETURNED' WHERE id = %s;", (loan_id,))
     if copy_id:
+        cursor.execute("UPDATE book_copy SET copy_status = 'AVAILABLE' WHERE copy_id = %s;", (copy_id,))
         cursor.execute("""
-            UPDATE book_copy
-            SET copy_status = 'AVAILABLE'
-            WHERE copy_id = %s;
-        """, (copy_id,))
-
-        # Find the first pending reservation for this book
-        cursor.execute("""
-            SELECT r.id, r.member_id
-            FROM reservation r
-            WHERE r.book_id = %s
-            AND r.reservation_status_id = 1
-            AND NOT EXISTS (
-                SELECT 1
-                FROM loan l
-                WHERE l.book_id = r.book_id
-                AND l.member_id = r.member_id
-                AND l.returned_date IS NULL
-            )
-            ORDER BY r.queue_position
-            LIMIT 1
-            FOR UPDATE;
+            SELECT r.id, r.member_id FROM reservation r
+            WHERE r.book_id = %s AND r.reservation_status_id = 1
+              AND NOT EXISTS (
+                  SELECT 1 FROM loan l WHERE l.book_id = r.book_id
+                    AND l.member_id = r.member_id AND l.returned_date IS NULL
+              )
+            ORDER BY r.queue_position LIMIT 1 FOR UPDATE;
         """, (book_id,))
-
         reservation = cursor.fetchone()
-
         if reservation:
-            reservation_id, reservation_member_id = reservation
-
-            # Give the returned copy to the first student in the queue
             cursor.execute("""
-                UPDATE reservation
-                SET reservation_status_id = 4,
-                    allocated_copy_id = %s,
-                    expires_at = CURRENT_DATE + 3
+                UPDATE reservation SET reservation_status_id = 4,
+                    allocated_copy_id = %s, expires_at = CURRENT_DATE + 3
                 WHERE id = %s;
-            """, (copy_id, reservation_id))
-
-            # Reserve that physical copy for the student
-            cursor.execute("""
-                UPDATE book_copy
-                SET copy_status = 'RESERVED'
-                WHERE copy_id = %s;
-            """, (copy_id,))
-
-    # Finalize one overdue fine when an overdue book is returned.
+            """, (copy_id, reservation[0]))
+            cursor.execute("UPDATE book_copy SET copy_status = 'RESERVED' WHERE copy_id = %s;", (copy_id,))
     if fine_amount > 0:
         cursor.execute("""
             INSERT INTO fine
-            (member_id, loan_id, fine_date, fine_amount, fine_type, status, notes, finalized_at)
+                (member_id, loan_id, fine_date, fine_amount, fine_type, status, notes, finalized_at)
             VALUES (%s, %s, CURRENT_DATE, %s, 'OVERDUE', 'OUTSTANDING', %s, CURRENT_TIMESTAMP);
-        """, (
-            member_id,
-            loan_id,
-            fine_amount,
-            f"Book returned {overdue_days} day(s) late at R25.00 per day."
-        ))
-
-    # Notify the member of the return outcome.
-    if fine_amount > 0:
-        create_notification(
-            cursor, member_id, 'BOOK_RETURNED_OVERDUE',
-            'Overdue book returned - fine applied',
-            f'Formal notice: "{title}" was returned {overdue_days} day(s) after the due date. A fine of R{fine_amount:.2f} has been added to your library account at R25.00 per overdue day.',
-            loan_id=loan_id
-        )
-    else:
-        create_notification(
-            cursor, member_id, 'BOOK_RETURNED',
-            'Book returned successfully',
-            f'Formal notice: "{title}" has been returned successfully. No overdue fine was applied.',
-            loan_id=loan_id
-        )
-
-    # Record the return action in the audit log
-    log_action(
-        session['member_id'],
-        "RETURN",
-        f"{session.get('role').capitalize()} returned loan ID {loan_id}, book ID {book_id}, copy ID {copy_id}."
-    )
-
+        """, (member_id, loan_id, fine_amount, f"Book returned {overdue_days} day(s) late at R25.00 per day."))
+    create_notification(cursor, member_id, 'BOOK_BORROWED', 'Book return recorded',
+        f'Staff approved the return of "{title}".' +
+        (f' A fine of R{fine_amount:.2f} was applied.' if fine_amount > 0 else ' No overdue fine was applied.'),
+        loan_id=loan_id)
+    log_action(session['member_id'], "RETURN",
+        f"Staff approved return of loan ID {loan_id}, book ID {book_id}, copy ID {copy_id}.")
     conn.commit()
-
-    cursor.close()
-    conn.close()
-
+    cursor.close(); conn.close()
     if fine_amount > 0:
-        return jsonify({
-            "message": "Book returned successfully.",
-            "fine": f"R{fine_amount} fine for {overdue_days} overdue day(s)."
-        })
+        return jsonify({"message": "Book return recorded successfully.", "fine": f"R{fine_amount} fine for {overdue_days} overdue day(s)."})
+    return jsonify({"message": "Book return recorded successfully. No fine."})
 
-    return jsonify({
-        "message": "Book returned successfully. No fine."
-    })
+
 @app.route('/staff/mark-lost', methods=['POST'])
 def mark_book_lost():
     """Staff/admin confirms a loaned book is lost and charges market value."""

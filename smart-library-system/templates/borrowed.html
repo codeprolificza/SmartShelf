@@ -70,7 +70,8 @@
 
         <div class="filters" id="filterBar">
             <button class="filter-btn active" data-status="all" onclick="setFilter(this)">All</button>
-            <button class="filter-btn" data-status="Currently Out" onclick="setFilter(this)">Currently Out</button>
+            <button class="filter-btn" data-status="Ready for Collection" onclick="setFilter(this)">Ready for Collection</button>
+            <button class="filter-btn" data-status="Out" onclick="setFilter(this)">Out</button>
             <button class="filter-btn" data-status="Due Soon" onclick="setFilter(this)">Due Soon</button>
             <button class="filter-btn" data-status="Overdue" onclick="setFilter(this)">Overdue</button>
             <button class="filter-btn" data-status="Returned" onclick="setFilter(this)">Returned</button>
@@ -97,29 +98,34 @@
 
                         <td>
                             {% if loan.status == "Returned" %}
-
-                                <span class="status-ok">
-                                    Returned
-                                </span>
-
+                                <span class="status-ok">Returned</span>
+                            {% elif loan.status == "Ready for Collection" %}
+                                <span class="status-out">Ready for Collection</span>
+                                <p>The book is ready for collection, you have 24 hours to collect this book at the Library.</p>
+                                <small>Collect by {{ loan.collection_expires_at }}</small>
+                            {% elif loan.status == "Collection Expired" %}
+                                <span class="status-due">Collection window expired</span>
                             {% elif loan.status == "Overdue" %}
-
-                                <span class="status-due">
-                                    Overdue
-                                </span>
-
-                            {% elif loan.status == "Due Soon" %}
-
-                                <span class="status-due">
-                                    Due Soon
-                                </span>
-
+                                <span class="status-due">Overdue</span>
+                            {% elif loan.status == "Lost" or loan.status == "Damaged" %}
+                                <span class="status-due">{{ loan.status }}</span>
                             {% else %}
-
-                                <span class="status-out">
-                                    Currently Out
-                                </span>
-
+                                <span class="status-out">{{ loan.status }}</span>
+                            {% endif %}
+                            {% if loan.can_review %}
+                                <div class="review-form" data-book-id="{{ loan.book_id }}">
+                                    <label>Rate this book:
+                                        <select class="review-rating" required>
+                                            <option value="">Choose a rating</option>
+                                            <option value="5">5 stars</option><option value="4">4 stars</option>
+                                            <option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option>
+                                        </select>
+                                    </label>
+                                    <textarea class="review-text" maxlength="2000" placeholder="Share your views (optional)"></textarea>
+                                    <button type="button" class="review-submit">Submit review</button>
+                                </div>
+                            {% elif loan.status == "Returned" and loan.has_review %}
+                                <small>Review submitted</small>
                             {% endif %}
                         </td>
 
@@ -217,6 +223,27 @@
 
 
     <script>
+        document.addEventListener('click', function(event) {
+            if (!event.target.matches('.review-submit')) return;
+            const form = event.target.closest('.review-form');
+            const rating = form.querySelector('.review-rating').value;
+            if (!rating) { alert('Please choose a rating from 1 to 5.'); return; }
+            fetch('/api/reviews', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    book_id: form.getAttribute('data-book-id'),
+                    rating: rating,
+                    review_text: form.querySelector('.review-text').value.trim()
+                })
+            }).then(response => response.json().then(data => ({ok: response.ok, data})))
+              .then(result => {
+                  if (!result.ok) { alert(result.data.error || 'Could not submit review.'); return; }
+                  alert(result.data.message || 'Review submitted.');
+                  window.location.reload();
+              }).catch(() => alert('Could not reach the server.'));
+        });
+
         function setFilter(btn) {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');

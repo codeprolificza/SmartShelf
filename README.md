@@ -2,6 +2,12 @@
 
 > **Capstone Collaborative Project** is a collaborative software development project for both CSC 200 & CSC 300 students, the project is focused on the design and implementation of **UniLibrary**, a library management and personalized book recommendation system for the university community.
 
+## Live Demo
+
+https://smart-shelf-wkvn.onrender.com
+
+> The demo runs on a free plan, so the first visit after a quiet period can take up to a minute to load.
+
 ## About the Project
 
 SmartShelf is a development collaboration group focused on the design, development, programming, and implementation of a real-world **Library Management and Book Recommendation System**.

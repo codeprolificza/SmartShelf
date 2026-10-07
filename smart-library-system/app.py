@@ -823,7 +823,6 @@ def borrowed():
 
 
 # ================================================
-# BOOK RATINGS AND REVIEWS# ================================================
 # BOOK RATINGS AND REVIEWS
 # ================================================
 
@@ -1060,6 +1059,7 @@ def loans():
     conn = get_db_connection()
     cursor = conn.cursor()
     expire_uncollected_loans(cursor)
+    sync_overdue_loan_status(cursor)
     cursor.execute("""
         SELECT l.id, b.title, m.first_name || ' ' || m.last_name AS student,
                l.loan_date, l.due_date, l.returned_date, COALESCE(l.loan_status, 'BORROWED'),
@@ -1236,30 +1236,17 @@ def fetch_books(search_term="", category="", author="all", year="all"):
 
     params = []
 
-    # Search
+    # Search title, author, and category by keyword.
     if search_term:
-        if len(search_term) == 1 and search_term.isalpha():
-            query += """
-                AND b.title ILIKE %s
-            """
-            params.append(search_term + "%")
-
-        else:
-            query += """
-                AND (
-                    b.title ILIKE %s
-                    OR (a.first_name || ' ' || a.last_name) ILIKE %s
-                    OR c.category_name ILIKE %s
-                )
-            """
-
-            search_pattern = "%" + search_term + "%"
-
-            params.extend([
-                search_pattern,
-                search_pattern,
-                search_pattern
-            ])
+        query += """
+            AND (
+                b.title ILIKE %s
+                OR (a.first_name || ' ' || a.last_name) ILIKE %s
+                OR c.category_name ILIKE %s
+            )
+        """
+        search_pattern = "%" + search_term + "%"
+        params.extend([search_pattern, search_pattern, search_pattern])
 
     # Category filter
     if category and category != "all":
@@ -2706,7 +2693,7 @@ def return_book():
     return jsonify({"message": "Book return recorded successfully. No fine."})
 
 
-@app.route('/staff/mark-lost', methods=['POST'])@app.route('/staff/mark-lost', methods=['POST'])
+@app.route('/staff/mark-lost', methods=['POST'])
 def mark_book_lost():
     """Staff/admin confirms a loaned book is lost and charges market value."""
     if session.get('role') not in ('staff', 'admin'):

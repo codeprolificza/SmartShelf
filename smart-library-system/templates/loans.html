@@ -271,46 +271,30 @@
                         <td>
 
                             {% if loan.status == 'Overdue' %}
-
-                                <span class="status-overdue">
-                                    Overdue
-                                </span>
-
+                                <span class="status-overdue">Overdue</span>
                             {% elif loan.status == 'Returned' %}
-
-                                <span class="status-ok">
-                                    Returned
-                                </span>
-
+                                <span class="status-ok">Returned</span>
+                            {% elif loan.status == 'Ready for Collection' %}
+                                <span class="status-out">Ready for Collection</span>
+                            {% elif loan.status == 'Collection Expired' %}
+                                <span class="status-overdue">Collection Expired</span>
+                            {% elif loan.status == 'Lost' or loan.status == 'Damaged' %}
+                                <span class="status-overdue">{{ loan.status }}</span>
                             {% else %}
-
-                                <span class="status-out">
-                                    On Loan
-                                </span>
-
+                                <span class="status-out">On Loan</span>
                             {% endif %}
-
                         </td>
 
 
                         <td>
 
-                            {% if loan.status == 'On Loan' or loan.status == 'Overdue' %}
-
-                                <button
-                                    type="button"
-                                    class="mark-btn mark-return-btn"
-                                    data-loan-id="{{ loan.loan_id }}"
-                                >
-                                    Mark Returned
-                                </button>
-
+                            {% if loan.can_collect %}
+                                <button type="button" class="mark-btn mark-collect-btn" data-loan-id="{{ loan.loan_id }}">Mark Collected</button>
+                            {% elif loan.can_return %}
+                                <button type="button" class="mark-btn mark-return-btn" data-loan-id="{{ loan.loan_id }}">Mark Returned</button>
                             {% else %}
-
                                 —
-
                             {% endif %}
-
                         </td>
 
                     </tr>
@@ -367,6 +351,11 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            document.querySelectorAll('.mark-collect-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    collectBook(this.getAttribute('data-loan-id'));
+                });
+            });
             document.querySelectorAll('.mark-return-btn').forEach(function(button) {
 
                 button.addEventListener('click', function() {
@@ -382,6 +371,20 @@
 
         });
 
+
+        function collectBook(loanId) {
+            fetch('/staff/collect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({loan_id: loanId})
+            }).then(function(res) {
+                return res.json().then(function(data) { return {status: res.status, data: data}; });
+            }).then(function(result) {
+                if (result.status !== 200) { alert(result.data.error || 'Could not record collection.'); return; }
+                alert(result.data.message || 'Collection recorded.');
+                window.location.reload();
+            }).catch(function() { alert('Could not reach the server.'); });
+        }
 
         function markReturned(loanId, btn) {
 

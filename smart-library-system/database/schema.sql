@@ -213,12 +213,19 @@ CREATE TABLE loan (
 
     due_date DATE,
 
+    collection_expires_at TIMESTAMP,
+
+    collected_at TIMESTAMP,
+
     returned_date DATE,
 
     loan_status VARCHAR(20) NOT NULL DEFAULT 'BORROWED'
         CHECK (
             loan_status IN (
                 'BORROWED',
+                'READY_FOR_COLLECTION',
+                'OUT',
+                'EXPIRED',
                 'OVERDUE',
                 'RETURNED',
                 'LOST',

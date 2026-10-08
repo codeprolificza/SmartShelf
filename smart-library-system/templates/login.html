@@ -122,6 +122,7 @@
         }
 
         input[type="email"],
+        input[type="text"],
         input[type="password"] {
             width: 100%;
             padding: 14px 15px;
@@ -135,6 +136,7 @@
         }
 
         input[type="email"]:focus,
+        input[type="text"]:focus,
         input[type="password"]:focus {
             border-color: #00a8ff;
             background: white;
@@ -785,5 +787,6 @@ document
 
 </script>
 
+    {% include '_password_toggle.html' %}
 </body>
 </html>

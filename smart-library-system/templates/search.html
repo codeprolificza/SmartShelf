@@ -589,7 +589,16 @@ function loadFacets(books) {
 
             .then(function(res) {
 
-                return res.json().then(function(data) {
+                // Read the reply as JSON, but don't crash if the server
+                // sent an HTML error page (for example after a 500 error).
+                return res.json().catch(function() {
+
+                    return {
+                        error: "The server had a problem (error " + res.status +
+                               "). Please try again, or tell the library team."
+                    };
+
+                }).then(function(data) {
 
                     return {
                         status: res.status,
@@ -633,7 +642,7 @@ function loadFacets(books) {
             .catch(function() {
 
                 alert(
-                    "Could not reach the server. Is Flask running?"
+                    "Could not reach the server. Please check your connection and try again."
                 );
 
             });
@@ -663,7 +672,16 @@ function loadFacets(books) {
 
             .then(function(res) {
 
-                return res.json().then(function(data) {
+                // Read the reply as JSON, but don't crash if the server
+                // sent an HTML error page (for example after a 500 error).
+                return res.json().catch(function() {
+
+                    return {
+                        error: "The server had a problem (error " + res.status +
+                               "). Please try again, or tell the library team."
+                    };
+
+                }).then(function(data) {
 
                     return {
                         status: res.status,
@@ -707,7 +725,7 @@ function loadFacets(books) {
             .catch(function() {
 
                 alert(
-                    "Could not reach the server. Is Flask running?"
+                    "Could not reach the server. Please check your connection and try again."
                 );
 
             });
